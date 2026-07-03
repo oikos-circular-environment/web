@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { SupportForm } from "./support-form";
 
 export const metadata: Metadata = {
-  title: "Suporte | Oikos",
+  title: "Suporte",
   description: "Fale com o suporte do aplicativo Oikos.",
+  alternates: { canonical: "/suporte" },
 };
 
 export default function SupportPage() {
@@ -18,10 +19,10 @@ export default function SupportPage() {
           Encontrou um problema ou tem alguma dúvida sobre o Oikos? Conte pra
           gente pelo formulário abaixo ou envie um e-mail para{" "}
           <a
-            href="mailto:suporte@oikos.app"
+            href="mailto:suporte@oikos.company"
             className="font-medium text-primary underline underline-offset-4"
           >
-            suporte@oikos.app
+            suporte@oikos.company
           </a>
           .
         </p>
