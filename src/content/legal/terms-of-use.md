@@ -1,10 +1,9 @@
+<!--
+versao: 1.1.0
+vigencia: 03 de julho de 2026
+atualizacao: 03 de julho de 2026
+-->
 # Termos de Uso — Oikos
-
-**Versão:** 1.0.0
-**Vigência:** 05 de junho de 2026
-**Última atualização:** 05 de junho de 2026
-
----
 
 Bem-vindo ao Oikos, plataforma colaborativa para a economia circular de resíduos. Ao criar uma conta ou utilizar o aplicativo, você concorda com os presentes Termos de Uso. Leia com atenção antes de prosseguir.
 
@@ -12,7 +11,7 @@ Bem-vindo ao Oikos, plataforma colaborativa para a economia circular de resíduo
 
 ## 1. Aceitação dos Termos
 
-Estes Termos de Uso regulam o acesso e a utilização da plataforma Oikos (aplicativo móvel e demais canais digitais), operada por **[RAZÃO SOCIAL DA EMPRESA]**, CNPJ **[CNPJ]**, doravante denominada "Oikos".
+Estes Termos de Uso regulam o acesso e a utilização da plataforma Oikos (aplicativo móvel e demais canais digitais), operada por **CHRISTIAN CESAR RODRIGUES SANTOS**, CNPJ **61.892.896/0001-55**, doravante denominada "Oikos".
 
 Ao se cadastrar ou utilizar qualquer funcionalidade do Oikos, o usuário declara ter lido, compreendido e aceito integralmente estes Termos, bem como a [Política de Privacidade](./privacy-policy.md) da plataforma.
 
@@ -46,17 +45,17 @@ A plataforma oferece os seguintes perfis de conta:
 
 | Perfil | Requisitos | Funcionalidades principais |
 |---|---|---|
-| Cidadão | CPF e e-mail válidos | Mapa de ecopontos, denúncia cidadã, educação ambiental |
+| Cidadão | E-mail válido | Mapa de ecopontos, denúncia cidadã, educação ambiental |
 | Catador | CPF, e-mail e localização habitual de atuação | Marketplace, rotas de coleta, pagamentos digitais |
 | Empresa | CNPJ, e-mail corporativo e responsável legal | Marketplace, gestão de resíduos, documentos de conformidade |
 | Órgão Público | CNPJ do órgão e credencial funcional (validada pela equipe Oikos) | Dashboards de governança, acesso a denúncias encaminhadas |
 
 **Regras de cadastro:**
 
-- Cada usuário pode ter apenas uma conta ativa por CPF ou CNPJ.
+- Cada usuário pode ter apenas uma conta ativa por e-mail; para os perfis de catador e empresa, também é permitida apenas uma conta ativa por CPF ou CNPJ, respectivamente.
 - É proibida a criação de contas em nome de terceiros sem autorização.
 - O usuário é o único responsável pela guarda de suas credenciais de acesso.
-- Suspeitas de acesso não autorizado devem ser comunicadas imediatamente a suporte@oikos.app.
+- Suspeitas de acesso não autorizado devem ser comunicadas imediatamente a suporte@oikos.company.
 
 ---
 
@@ -144,7 +143,7 @@ O Oikos pode suspender ou encerrar o acesso de um usuário, com ou sem aviso pr�
 - Suspeita de fraude, golpe ou atividade ilegal.
 - Determinação de autoridade judicial ou administrativa.
 
-O usuário pode encerrar sua conta a qualquer momento nas configurações do aplicativo. O encerramento não prejudica o cumprimento das obrigações legais de retenção de dados previstas na Política de Privacidade.
+O usuário pode encerrar sua conta a qualquer momento nas configurações do aplicativo, ou solicitando o encerramento ao suporte. O encerramento não prejudica o cumprimento das obrigações legais de retenção de dados previstas na Política de Privacidade.
 
 ---
 
@@ -163,4 +162,4 @@ O uso continuado da plataforma após a data de vigência das alterações implic
 - A eventual nulidade ou invalidade de qualquer cláusula destes Termos não afeta as demais disposições.
 - A omissão do Oikos em exigir o cumprimento de qualquer cláusula não implica renúncia ao direito de fazê-lo futuramente.
 
-**Contato:** suporte@oikos.app
+**Contato:** suporte@oikos.company

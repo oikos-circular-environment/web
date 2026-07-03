@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -33,20 +34,23 @@ export function SiteHeader() {
           />
           Oikos
         </Link>
-        <NavigationMenu viewport={false} className="max-w-full">
-          <NavigationMenuList className="flex-wrap justify-end">
-            {navItems.map((item) => (
-              <NavigationMenuItem key={item.href}>
-                <NavigationMenuLink
-                  asChild
-                  className={navigationMenuTriggerStyle()}
-                >
-                  <Link href={item.href}>{item.label}</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <div className="flex items-center gap-2">
+          <NavigationMenu viewport={false} className="max-w-full">
+            <NavigationMenuList className="flex-wrap justify-end">
+              {navItems.map((item) => (
+                <NavigationMenuItem key={item.href}>
+                  <NavigationMenuLink
+                    asChild
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    <Link href={item.href}>{item.label}</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+          <ModeToggle />
+        </div>
       </div>
     </header>
   );

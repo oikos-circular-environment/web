@@ -26,7 +26,7 @@ const components: Components = {
     <h3 className="mt-6 mb-2 font-heading text-lg font-semibold">{children}</h3>
   ),
   p: ({ children }) => (
-    <p className="mb-4 leading-7 text-foreground/90">{children}</p>
+    <p className="mb-4 leading-7 break-words text-foreground/90">{children}</p>
   ),
   ul: ({ children }) => (
     <ul className="mb-4 list-disc space-y-1 pl-6">{children}</ul>
@@ -35,12 +35,12 @@ const components: Components = {
     <ol className="mb-4 list-decimal space-y-1 pl-6">{children}</ol>
   ),
   li: ({ children }) => (
-    <li className="leading-7 text-foreground/90">{children}</li>
+    <li className="leading-7 break-words text-foreground/90">{children}</li>
   ),
   a: ({ children, href }) => (
     <a
       href={resolveHref(href)}
-      className="font-medium text-primary underline underline-offset-4"
+      className="font-medium text-primary underline underline-offset-4 break-words"
     >
       {children}
     </a>
@@ -71,7 +71,9 @@ const components: Components = {
     </th>
   ),
   td: ({ children }) => (
-    <td className="border border-border px-3 py-2 align-top">{children}</td>
+    <td className="border border-border px-3 py-2 align-top break-words">
+      {children}
+    </td>
   ),
 };
 
