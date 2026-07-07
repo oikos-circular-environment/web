@@ -1,5 +1,7 @@
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { RuntimeNodeInstrumentation } from "@opentelemetry/instrumentation-runtime-node";
+import { BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { FetchInstrumentation, registerOTel } from "@vercel/otel";
 
@@ -11,8 +13,10 @@ import { FetchInstrumentation, registerOTel } from "@vercel/otel";
 // @vercel/otel cobre traces (fetch instrumentation, deteccao de resource attributes,
 // e leitura de OTEL_EXPORTER_OTLP_ENDPOINT/OTEL_EXPORTER_OTLP_PROTOCOL/etc pro exporter
 // de traces automaticamente). O que ele nao cobre - metricas de runtime do Node/V8
-// (event loop lag, duracao de GC por tipo, heap por geracao) - fica com
-// RuntimeNodeInstrumentation + um MetricReader OTLP nativo, passados via config.
+// (event loop lag, duracao de GC por tipo, heap por geracao) e logs - fica com
+// RuntimeNodeInstrumentation + um MetricReader/LogRecordProcessor OTLP nativos,
+// passados via config. onRequestError (em instrumentation.ts) usa o LoggerProvider
+// que esse LogRecordProcessor alimenta.
 export function startOtel(endpoint: string) {
   registerOTel({
     serviceName: "oikos-web",
@@ -26,6 +30,13 @@ export function startOtel(endpoint: string) {
           url: `${endpoint}/v1/metrics`,
         }),
         exportIntervalMillis: 30_000,
+      }),
+    ],
+    logRecordProcessors: [
+      new BatchLogRecordProcessor({
+        exporter: new OTLPLogExporter({
+          url: `${endpoint}/v1/logs`,
+        }),
       }),
     ],
   });
