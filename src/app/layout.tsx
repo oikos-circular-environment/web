@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Montserrat, Space_Grotesk } from "next/font/google";
+import { Geist_Mono, Oswald, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const spaceGroteskHeading = Space_Grotesk({
+const oswaldHeading = Oswald({
   subsets: ["latin"],
+  weight: ["600", "700"],
   variable: "--font-heading",
 });
 
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGroteskSans = Space_Grotesk({
   subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 const geistMono = Geist_Mono({
@@ -85,11 +85,10 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        geistSans.variable,
         geistMono.variable,
         "font-sans",
-        montserrat.variable,
-        spaceGroteskHeading.variable,
+        spaceGroteskSans.variable,
+        oswaldHeading.variable,
       )}
     >
       <body className="flex min-h-full flex-col">
@@ -99,10 +98,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SiteHeader />
-          <main className="flex flex-1 flex-col">{children}</main>
-          <SiteFooter />
-          <Toaster />
+          <TooltipProvider>
+            <SiteHeader />
+            <main className="flex flex-1 flex-col">{children}</main>
+            <SiteFooter />
+            <Toaster />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -14,7 +14,8 @@
       "!dist",
       "!build",
       "!.agents",
-      "!public/**/*.svg"
+      "!public/**/*.svg",
+      "!src/components/ui"
     ]
   },
   "formatter": {
