@@ -4403,18 +4403,43 @@
                               ]
                             },
                             {
-                              "id": "MOg54R",
-                              "type": "ref",
-                              "ref": "P3lpuY",
-                              "name": "Enviar solicitação",
-                              "descendants": {
-                                "A:UiOOr": {
-                                  "enabled": false
+                              "type": "frame",
+                              "id": "SWQn1y",
+                              "name": "Ações",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "id": "NhkhGh",
+                                  "type": "ref",
+                                  "ref": "adtsb",
+                                  "name": "Limpar formulário",
+                                  "descendants": {
+                                    "A:JvOHX": {
+                                      "enabled": false
+                                    },
+                                    "A:ydXf3": {
+                                      "content": "Limpar formulário"
+                                    }
+                                  }
                                 },
-                                "A:NEMHS": {
-                                  "content": "Enviar solicitação"
+                                {
+                                  "id": "AE8rsu",
+                                  "type": "ref",
+                                  "ref": "P3lpuY",
+                                  "name": "Enviar solicitação",
+                                  "descendants": {
+                                    "A:UiOOr": {
+                                      "enabled": true,
+                                      "iconFontName": "send"
+                                    },
+                                    "A:NEMHS": {
+                                      "content": "Enviar solicitação"
+                                    }
+                                  }
                                 }
-                              }
+                              ]
                             }
                           ]
                         }
