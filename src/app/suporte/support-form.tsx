@@ -27,6 +27,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmitSupportRequest } from "@/hooks/use-submit-support-request";
 
@@ -283,7 +284,11 @@ export function SupportForm() {
               </Button>
               <Button type="submit" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? "Enviando..." : "Enviar solicitação"}
-                <SendIcon data-icon="inline-end" />
+                {isSubmitting ? (
+                  <Spinner data-icon="inline-end" />
+                ) : (
+                  <SendIcon data-icon="inline-end" />
+                )}
               </Button>
             </div>
           </FieldGroup>
