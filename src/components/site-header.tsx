@@ -12,6 +12,7 @@ import {
 
 const navItems = [
   { href: "/", label: "Início" },
+  { href: "/design-system", label: "Design System" },
   { href: "/politica-de-privacidade", label: "Política de Privacidade" },
   { href: "/termos-de-uso", label: "Termos de Uso" },
   { href: "/suporte", label: "Suporte" },
