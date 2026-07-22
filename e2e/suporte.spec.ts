@@ -60,6 +60,26 @@ test("anexa uma imagem válida e permite removê-la", async ({ page }) => {
   await expect(page.getByText("0/5 arquivos")).toBeVisible();
 });
 
+test("exibe o tamanho em KB para arquivos pequenos e em MB para grandes", async ({
+  page,
+}) => {
+  await page.goto("/suporte");
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "pequena.png",
+    mimeType: "image/png",
+    buffer: Buffer.alloc(200 * 1024),
+  });
+  await expect(page.getByText(/^200 KB$/)).toBeVisible();
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "grande.png",
+    mimeType: "image/png",
+    buffer: Buffer.alloc(Math.round(2.5 * 1024 * 1024)),
+  });
+  await expect(page.getByText(/^2,5 MB$/)).toBeVisible();
+});
+
 test("rejeita arquivo fora do tipo aceito e não anexa", async ({ page }) => {
   await page.goto("/suporte");
 

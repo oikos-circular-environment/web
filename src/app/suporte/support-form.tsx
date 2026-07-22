@@ -37,9 +37,13 @@ type ImageAttachment = {
 };
 
 function formatFileSize(bytes: number) {
-  return `${(bytes / (1024 * 1024)).toLocaleString("pt-BR", {
-    maximumFractionDigits: 1,
-  })} MB`;
+  if (bytes < 1024 * 1024) {
+    const kb = bytes / 1024;
+    return `${kb.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} KB`;
+  }
+
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`;
 }
 
 export function SupportForm() {
