@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "cp ../DESIGN.md public/design.md",
+    "predev": "cp DESIGN.md public/design.md",
     "dev": "next dev",
-    "prebuild": "cp ../DESIGN.md public/design.md",
+    "prebuild": "cp DESIGN.md public/design.md",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
