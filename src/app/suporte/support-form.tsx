@@ -31,13 +31,18 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmitSupportRequest } from "@/hooks/use-submit-support-request";
 
+const MAX_TITLE_LENGTH = 200;
 const MAX_DESCRIPTION_LENGTH = 2500;
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg"];
 
 const supportFormSchema = z.object({
-  title: z.string().trim().min(1, "Informe um título."),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Informe um título.")
+    .max(MAX_TITLE_LENGTH, `Máximo de ${MAX_TITLE_LENGTH} caracteres.`),
   description: z
     .string()
     .trim()
@@ -178,6 +183,7 @@ export function SupportForm() {
               <Input
                 id={titleId}
                 aria-invalid={!!errors.title}
+                maxLength={MAX_TITLE_LENGTH}
                 placeholder="Resuma o problema em poucas palavras"
                 {...register("title")}
               />
@@ -283,7 +289,7 @@ export function SupportForm() {
                 Limpar formulário
               </Button>
               <Button type="submit" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? "Enviando..." : "Enviar solicitação"}
+                {isSubmitting ? "Enviando" : "Enviar solicitação"}
                 {isSubmitting ? (
                   <Spinner data-icon="inline-end" />
                 ) : (
