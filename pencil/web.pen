@@ -4250,6 +4250,8 @@
                           "id": "mD9RjP",
                           "name": "Subtítulo",
                           "fill": "$oikos-muted-foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
                           "content": "Encontrou um problema ou tem alguma dúvida sobre o Oikos? Conte pra gente pelo formulário abaixo ou envie um e-mail para suporte@oikos.company.",
                           "fontFamily": "Space Grotesk",
                           "fontSize": 14,
@@ -4351,7 +4353,12 @@
                                   "type": "ref",
                                   "ref": "NFjj7I",
                                   "name": "Dropzone",
-                                  "width": "fill_container"
+                                  "width": "fill_container",
+                                  "descendants": {
+                                    "YACBdO/A:zHpCv": {
+                                      "content": "2/5 arquivos"
+                                    }
+                                  }
                                 },
                                 {
                                   "type": "frame",
@@ -4388,23 +4395,6 @@
                                         },
                                         "U2MK4F": {
                                           "content": "2,4 MB"
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "id": "PTMwKa",
-                                      "type": "ref",
-                                      "ref": "gib0d0",
-                                      "name": "Anexo — erro",
-                                      "width": "fill_container",
-                                      "stroke": "$A:--destructive",
-                                      "descendants": {
-                                        "g0NPwO": {
-                                          "content": "video-bug.mov"
-                                        },
-                                        "U2MK4F": {
-                                          "content": "Arquivo excede 5 MB",
-                                          "fill": "$A:--destructive"
                                         }
                                       }
                                     }
