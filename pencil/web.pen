@@ -4,9 +4,9 @@
     {
       "type": "frame",
       "id": "ks3mt0",
+      "x": 66,
+      "y": -2661,
       "name": "Design System",
-      "x": 0,
-      "y": 0,
       "layout": "vertical",
       "gap": 56,
       "children": [
@@ -699,7 +699,6 @@
                   "stroke": "$oikos-border",
                   "strokeWidth": 1,
                   "strokeAlignment": "inner",
-                  "strokeStyle": "dashed",
                   "layout": "vertical",
                   "gap": 8,
                   "padding": 32,
@@ -724,19 +723,50 @@
                       "content": "Arraste imagens aqui ou clique para selecionar",
                       "fontFamily": "Space Grotesk",
                       "fontSize": 14,
-                      "fontWeight": "500",
-                      "textAlignHorizontal": "center"
+                      "fontWeight": "500"
                     },
                     {
-                      "type": "text",
-                      "id": "wUFJG6",
+                      "type": "frame",
+                      "id": "NjfMs5",
                       "name": "Restrições",
-                      "fill": "$oikos-muted-foreground",
-                      "content": "PNG, JPG ou JPEG · máx. 5 arquivos · 5 MB cada",
-                      "fontFamily": "Space Grotesk",
-                      "fontSize": 13,
-                      "fontWeight": "normal",
-                      "textAlignHorizontal": "center"
+                      "gap": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "id": "cIEULm",
+                          "type": "ref",
+                          "ref": "e9q9cd",
+                          "name": "Restrição",
+                          "descendants": {
+                            "A:zHpCv": {
+                              "content": "PNG, JPG ou JPEG"
+                            }
+                          }
+                        },
+                        {
+                          "id": "YACBdO",
+                          "type": "ref",
+                          "ref": "e9q9cd",
+                          "name": "Restrição",
+                          "descendants": {
+                            "A:zHpCv": {
+                              "content": "3/5 arquivos"
+                            }
+                          }
+                        },
+                        {
+                          "id": "KdgA6r",
+                          "type": "ref",
+                          "ref": "e9q9cd",
+                          "name": "Restrição",
+                          "descendants": {
+                            "A:zHpCv": {
+                              "content": "10MB"
+                            }
+                          }
+                        }
+                      ]
                     }
                   ]
                 },
@@ -1256,10 +1286,9 @@
     {
       "type": "frame",
       "id": "iLZwFn",
-      "name": "Pesquisas de Usabilidade",
       "x": 0,
       "y": 0,
-      "layout": "horizontal",
+      "name": "Pesquisas de Usabilidade",
       "gap": 120,
       "children": [
         {
@@ -4164,10 +4193,9 @@
     {
       "type": "frame",
       "id": "JC5B1t",
-      "name": "Suporte",
       "x": 0,
-      "y": 0,
-      "layout": "horizontal",
+      "y": 1619,
+      "name": "Suporte",
       "gap": 120,
       "children": [
         {
@@ -4185,11 +4213,11 @@
               "name": "Centering Wrapper",
               "width": "fill_container",
               "height": "fill_container",
-              "justifyContent": "center",
               "padding": [
                 64,
                 0
               ],
+              "justifyContent": "center",
               "children": [
                 {
                   "type": "frame",
@@ -4296,9 +4324,7 @@
                                   "content": "0 / 2500",
                                   "fontFamily": "Space Grotesk",
                                   "fontSize": 12,
-                                  "fontWeight": "normal",
-                                  "textAlignHorizontal": "right",
-                                  "width": "fill_container"
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
