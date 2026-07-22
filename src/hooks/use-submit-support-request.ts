@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { apiClient } from "@/lib/api-client";
+import { submitSupportRequestAction } from "@/app/suporte/actions";
 
 type SubmitSupportRequestInput = {
   title: string;
@@ -8,28 +8,11 @@ type SubmitSupportRequestInput = {
   images: File[];
 };
 
-type SupportRequestAttachment = {
-  id: string;
-  url: string;
-  file_name: string;
-  path: string;
-  created_at: string;
-};
-
-type SupportRequest = {
-  id: string;
-  title: string;
-  description: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  attachments: SupportRequestAttachment[];
-  created_at: string;
-};
-
 async function submitSupportRequest({
   title,
   description,
   images,
-}: SubmitSupportRequestInput): Promise<SupportRequest> {
+}: SubmitSupportRequestInput) {
   const formData = new FormData();
   formData.append("title", title);
   formData.append("description", description);
@@ -37,12 +20,7 @@ async function submitSupportRequest({
     formData.append("images", image);
   }
 
-  const { data } = await apiClient.post<{ supportRequest: SupportRequest }>(
-    "/v1/moderation/support",
-    formData,
-  );
-
-  return data.supportRequest;
+  return submitSupportRequestAction(formData);
 }
 
 export function useSubmitSupportRequest() {
