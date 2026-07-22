@@ -7,8 +7,10 @@
       "x": 66,
       "y": -2661,
       "name": "Design System",
+      "fill": "$A:--background",
       "layout": "vertical",
       "gap": 56,
+      "padding": 32,
       "children": [
         {
           "type": "frame",
@@ -4416,8 +4418,11 @@
                                   "ref": "adtsb",
                                   "name": "Limpar formulário",
                                   "descendants": {
-                                    "A:JvOHX": {
+                                    "A:vLff5": {
                                       "enabled": false
+                                    },
+                                    "A:JvOHX": {
+                                      "enabled": true
                                     },
                                     "A:ydXf3": {
                                       "content": "Limpar formulário"
@@ -4430,9 +4435,19 @@
                                   "ref": "P3lpuY",
                                   "name": "Enviar solicitação",
                                   "descendants": {
+                                    "A:RO4Ll": {
+                                      "x": 24,
+                                      "y": 10,
+                                      "width": 16,
+                                      "height": 16,
+                                      "enabled": false
+                                    },
                                     "A:UiOOr": {
                                       "enabled": true,
-                                      "iconFontName": "send"
+                                      "library": "lucide",
+                                      "icon": "send",
+                                      "width": 16,
+                                      "height": 16
                                     },
                                     "A:NEMHS": {
                                       "content": "Enviar solicitação"
