@@ -112,3 +112,78 @@ test("Limpar formulário reseta título e descrição", async ({ page }) => {
   await expect(page.getByLabel("Título")).toHaveValue("");
   await expect(page.getByLabel("Descrição")).toHaveValue("");
 });
+
+test("envia a solicitação com anexo, mostra o load state e reseta ao concluir", async ({
+  page,
+}) => {
+  await page.route("**/v1/moderation/support", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        supportRequest: {
+          id: "11111111-1111-1111-1111-111111111111",
+          title: "Algo quebrou",
+          description: "Descrição do problema",
+          status: "PENDING",
+          attachments: [],
+          created_at: new Date().toISOString(),
+        },
+      }),
+    });
+  });
+
+  await page.goto("/suporte");
+  await page.getByLabel("Título").fill("Algo quebrou");
+  await page.getByLabel("Descrição").fill("Descrição do problema");
+  await page.locator('input[type="file"]').setInputFiles(validImage);
+  await expect(page.getByText("valid-image.png")).toBeVisible();
+
+  await page.getByRole("button", { name: "Enviar solicitação" }).click();
+
+  await expect(page.getByRole("button", { name: "Enviando..." })).toBeVisible();
+
+  await expect(
+    page.getByText(
+      "Solicitação enviada! Nossa equipe vai te responder em breve.",
+    ),
+  ).toBeVisible();
+
+  await expect(page.getByLabel("Título")).toHaveValue("");
+  await expect(page.getByText("valid-image.png")).toHaveCount(0);
+});
+
+test("mostra erro e não reseta o formulário quando a api falha", async ({
+  page,
+}) => {
+  await page.route("**/v1/moderation/support", async (route) => {
+    await route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({
+        message:
+          "Support request attachment type is invalid. Allowed types: jpeg, png",
+        code: "SUPPORT_REQUEST_ATTACHMENT_TYPE_INVALID",
+        statusCode: 400,
+      }),
+    });
+  });
+
+  await page.goto("/suporte");
+  await page.getByLabel("Título").fill("Algo quebrou");
+  await page.getByLabel("Descrição").fill("Descrição do problema");
+
+  await page.getByRole("button", { name: "Enviar solicitação" }).click();
+
+  await expect(
+    page.getByText(
+      "Support request attachment type is invalid. Allowed types: jpeg, png",
+    ),
+  ).toBeVisible();
+
+  await expect(page.getByLabel("Título")).toHaveValue("Algo quebrou");
+  await expect(page.getByLabel("Descrição")).toHaveValue(
+    "Descrição do problema",
+  );
+});

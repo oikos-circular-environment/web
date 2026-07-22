@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useSubmitSupportRequest } from "@/hooks/use-submit-support-request";
 
 const MAX_DESCRIPTION_LENGTH = 2500;
 const MAX_FILES = 5;
@@ -82,6 +83,7 @@ export function SupportForm() {
 
   const [images, setImages] = useState<ImageAttachment[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const submitSupportRequest = useSubmitSupportRequest();
 
   const description = watch("description");
 
@@ -144,13 +146,25 @@ export function SupportForm() {
     reset();
   }
 
-  const onSubmit = handleSubmit(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      await submitSupportRequest.mutateAsync({
+        title: values.title,
+        description: values.description,
+        images: images.map((image) => image.file),
+      });
 
-    toast.success(
-      "Solicitação enviada! Nossa equipe vai te responder em breve.",
-    );
-    resetForm();
+      toast.success(
+        "Solicitação enviada! Nossa equipe vai te responder em breve.",
+      );
+      resetForm();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível enviar sua solicitação. Tente novamente.",
+      );
+    }
   });
 
   return (
