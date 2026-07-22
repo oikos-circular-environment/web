@@ -1,5 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
+import { apiClient } from "@/lib/api-client";
+
 type SubmitSupportRequestInput = {
   title: string;
   description: string;
@@ -35,20 +37,12 @@ async function submitSupportRequest({
     formData.append("images", image);
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/v1/moderation/support`,
-    { method: "POST", body: formData },
+  const { data } = await apiClient.post<{ supportRequest: SupportRequest }>(
+    "/v1/moderation/support",
+    formData,
   );
 
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(
-      body?.message ?? "Não foi possível enviar sua solicitação.",
-    );
-  }
-
-  const body = (await response.json()) as { supportRequest: SupportRequest };
-  return body.supportRequest;
+  return data.supportRequest;
 }
 
 export function useSubmitSupportRequest() {
