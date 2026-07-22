@@ -90,6 +90,17 @@ test("rejeita arquivo fora do tipo aceito e não anexa", async ({ page }) => {
   await expect(page.getByText("0/5 arquivos")).toBeVisible();
 });
 
+test("exibe erros de validação ao enviar título e descrição vazios", async ({
+  page,
+}) => {
+  await page.goto("/suporte");
+
+  await page.getByRole("button", { name: "Enviar solicitação" }).click();
+
+  await expect(page.getByText("Informe um título.")).toBeVisible();
+  await expect(page.getByText("Descreva o problema.")).toBeVisible();
+});
+
 test("Limpar formulário reseta título e descrição", async ({ page }) => {
   await page.goto("/suporte");
 

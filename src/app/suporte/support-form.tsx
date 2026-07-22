@@ -1,8 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FileTextIcon, SendIcon, UploadIcon, XIcon } from "lucide-react";
 import { useId, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import {
   Attachment,
@@ -19,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -29,6 +33,20 @@ const MAX_DESCRIPTION_LENGTH = 2500;
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg"];
+
+const supportFormSchema = z.object({
+  title: z.string().trim().min(1, "Informe um título."),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Descreva o problema.")
+    .max(
+      MAX_DESCRIPTION_LENGTH,
+      `Máximo de ${MAX_DESCRIPTION_LENGTH} caracteres.`,
+    ),
+});
+
+type SupportFormValues = z.infer<typeof supportFormSchema>;
 
 type ImageAttachment = {
   id: string;
@@ -51,11 +69,21 @@ export function SupportForm() {
   const descriptionId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<SupportFormValues>({
+    resolver: zodResolver(supportFormSchema),
+    defaultValues: { title: "", description: "" },
+  });
+
   const [images, setImages] = useState<ImageAttachment[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  const description = watch("description");
 
   function addFiles(fileList: FileList | null) {
     if (!fileList) return;
@@ -112,54 +140,49 @@ export function SupportForm() {
     images.forEach((image) => {
       URL.revokeObjectURL(image.previewUrl);
     });
-    setTitle("");
-    setDescription("");
     setImages([]);
+    reset();
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSubmitting(true);
-
+  const onSubmit = handleSubmit(async () => {
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     toast.success(
       "Solicitação enviada! Nossa equipe vai te responder em breve.",
     );
     resetForm();
-    setIsSubmitting(false);
-  }
+  });
 
   return (
     <Card>
       <CardContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <FieldGroup>
-            <Field>
+            <Field data-invalid={!!errors.title}>
               <FieldLabel htmlFor={titleId}>Título</FieldLabel>
               <Input
                 id={titleId}
-                required
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                aria-invalid={!!errors.title}
                 placeholder="Resuma o problema em poucas palavras"
+                {...register("title")}
               />
+              <FieldError errors={[errors.title]} />
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.description}>
               <FieldLabel htmlFor={descriptionId}>Descrição</FieldLabel>
               <Textarea
                 id={descriptionId}
-                required
                 rows={6}
                 maxLength={MAX_DESCRIPTION_LENGTH}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                aria-invalid={!!errors.description}
                 placeholder="Descreva o que aconteceu, com o máximo de detalhes possível"
+                {...register("description")}
               />
               <FieldDescription className="text-right">
-                {description.length} / {MAX_DESCRIPTION_LENGTH}
+                {description?.length ?? 0} / {MAX_DESCRIPTION_LENGTH}
               </FieldDescription>
+              <FieldError errors={[errors.description]} />
             </Field>
 
             <Field>
