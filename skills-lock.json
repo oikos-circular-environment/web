@@ -13,6 +13,12 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "781bd6d3f9b19f8c9af6b53d8d0e4876d0183841b565db34ca7092ffa412d111"
     },
+    "pencil-design": {
+      "source": "chiroro-jr/pencil-design-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "e898f789a2fdf7eceace95294be4601aa7a2699aeefbb16a741c1ee78d208856"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

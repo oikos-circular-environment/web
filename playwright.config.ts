@@ -27,10 +27,22 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "next dev -p 3100",
-    url: "http://localhost:3100",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "node e2e/fake-api-server.mjs",
+      port: 3335,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      command: "next dev -p 3100",
+      url: "http://localhost:3100",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        API_INTERNAL_URL: "http://localhost:3335",
+        CLIENT_API_KEY: "e2e-test-client-key",
+      },
+    },
+  ],
 });

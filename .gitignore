@@ -43,3 +43,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# design-sync (claude.ai/design)
+/.ds-sync/
+/ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+.design-sync/generated/
+.design-sync/previews/
+
+# design.md is a generated copy of the monorepo root DESIGN.md (see predev/prebuild)
+/public/design.md
