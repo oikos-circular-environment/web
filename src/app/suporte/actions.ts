@@ -2,9 +2,13 @@
 
 import { z } from "zod";
 
+const SITEVERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
 const supportRequestSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().min(1).max(2500),
+  turnstileToken: z.string().min(1),
 });
 
 export type SupportRequestAttachment = {
@@ -24,13 +28,36 @@ export type SupportRequest = {
   created_at: string;
 };
 
+// O token vale uma única verificação: o widget é resetado no cliente a cada
+// tentativa de envio, com ou sem sucesso.
+async function verifyTurnstileToken(token: string) {
+  const response = await fetch(SITEVERIFY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      secret: process.env.TURNSTILE_SECRET_KEY ?? "",
+      response: token,
+    }),
+  });
+
+  const outcome = (await response.json()) as { success: boolean };
+  return outcome.success === true;
+}
+
 export async function submitSupportRequestAction(
   formData: FormData,
 ): Promise<SupportRequest> {
-  const { title, description } = supportRequestSchema.parse({
+  const { title, description, turnstileToken } = supportRequestSchema.parse({
     title: formData.get("title"),
     description: formData.get("description"),
+    turnstileToken: formData.get("turnstileToken"),
   });
+
+  if (!(await verifyTurnstileToken(turnstileToken))) {
+    throw new Error(
+      "Não foi possível confirmar que você não é um robô. Tente novamente.",
+    );
+  }
 
   const payload = new FormData();
   payload.append("title", title);

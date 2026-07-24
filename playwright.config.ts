@@ -42,6 +42,10 @@ export default defineConfig({
       env: {
         API_INTERNAL_URL: "http://localhost:3335",
         CLIENT_API_KEY: "e2e-test-client-key",
+        // Chaves de teste da Cloudflare: o widget resolve sozinho e o siteverify
+        // sempre aprova o token, sem interação humana.
+        TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+        TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
       },
     },
   ],
