@@ -29,10 +29,19 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Só em PR para production: o job builda de novo, sobe o servidor e coleta
+  # 4 URLs x 3 execuções - caro demais para rodar a cada commit, e regressão de
+  # performance se investiga iterando local (`npm run lighthouse`), não esperando
+  # o runner. Aqui ele serve de porta de entrada da produção.
   lighthouse:
     name: Lighthouse CI
+    if: github.event_name == 'pull_request' && github.base_ref == 'production'
     runs-on: ubuntu-latest
     needs: quality
+    # Sitekey de teste da Cloudflare: /suporte está na coleta do lighthouserc e
+    # falha ao renderizar sem essa env (web#39).
+    env:
+      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
