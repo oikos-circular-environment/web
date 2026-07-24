@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { FileTextIcon, SendIcon, UploadIcon, XIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -71,10 +73,16 @@ function formatFileSize(bytes: number) {
   return `${mb.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} MB`;
 }
 
-export function SupportForm() {
+type SupportFormProps = {
+  turnstileSiteKey: string;
+};
+
+export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
   const titleId = useId();
   const descriptionId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
+  const { resolvedTheme } = useTheme();
 
   const {
     register,
@@ -89,6 +97,7 @@ export function SupportForm() {
 
   const [images, setImages] = useState<ImageAttachment[]>([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isChallengeSolved, setIsChallengeSolved] = useState(false);
   const submitSupportRequest = useSubmitSupportRequest();
 
   const description = watch("description");
@@ -153,11 +162,21 @@ export function SupportForm() {
   }
 
   const onSubmit = handleSubmit(async (values) => {
+    const turnstileToken = turnstileRef.current?.getResponse();
+
+    if (!turnstileToken) {
+      toast.error(
+        "Aguarde a verificação de segurança concluir antes de enviar.",
+      );
+      return;
+    }
+
     try {
       await submitSupportRequest.mutateAsync({
         title: values.title,
         description: values.description,
         images: images.map((image) => image.file),
+        turnstileToken,
       });
 
       toast.success(
@@ -170,6 +189,11 @@ export function SupportForm() {
           ? error.message
           : "Não foi possível enviar sua solicitação. Tente novamente.",
       );
+    } finally {
+      // Cada token vale uma verificação só - sem o reset, uma segunda tentativa
+      // seria recusada pelo siteverify como token duplicado.
+      setIsChallengeSolved(false);
+      turnstileRef.current?.reset();
     }
   });
 
@@ -278,6 +302,29 @@ export function SupportForm() {
               )}
             </Field>
 
+            <Field>
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={turnstileSiteKey}
+                options={{
+                  language: "pt-br",
+                  theme: resolvedTheme === "dark" ? "dark" : "light",
+                  refreshExpired: "manual",
+                }}
+                onSuccess={() => setIsChallengeSolved(true)}
+                onExpire={() => {
+                  setIsChallengeSolved(false);
+                  turnstileRef.current?.reset();
+                }}
+                onError={() => {
+                  setIsChallengeSolved(false);
+                  toast.error(
+                    "Falha na verificação de segurança. Recarregue a página e tente novamente.",
+                  );
+                }}
+              />
+            </Field>
+
             <div className="flex items-center justify-between">
               <Button
                 type="button"
@@ -288,7 +335,16 @@ export function SupportForm() {
               >
                 Limpar formulário
               </Button>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSubmitting || !isChallengeSolved}
+                title={
+                  isChallengeSolved
+                    ? undefined
+                    : "Conclua a verificação de segurança para enviar."
+                }
+              >
                 {isSubmitting ? "Enviando" : "Enviar solicitação"}
                 {isSubmitting ? (
                   <Spinner data-icon="inline-end" />

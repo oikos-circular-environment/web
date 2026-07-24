@@ -1,9 +1,17 @@
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const fixturesDir = path.join(__dirname, "fixtures");
 const validImage = path.join(fixturesDir, "valid-image.png");
 const invalidFile = path.join(fixturesDir, "invalid.txt");
+
+// Com a sitekey de teste da Cloudflare o desafio se resolve sozinho, mas o token
+// só existe depois que o widget carrega — sem esperar por ele o envio é abortado.
+async function waitForTurnstile(page: Page) {
+  await expect(
+    page.locator('input[name="cf-turnstile-response"]'),
+  ).not.toHaveValue("");
+}
 
 test("exibe os campos e as restrições do dropzone", async ({ page }) => {
   await page.goto("/suporte");
@@ -94,11 +102,31 @@ test("exibe erros de validação ao enviar título e descrição vazios", async 
   page,
 }) => {
   await page.goto("/suporte");
+  await waitForTurnstile(page);
 
   await page.getByRole("button", { name: "Enviar solicitação" }).click();
 
   await expect(page.getByText("Informe um título.")).toBeVisible();
   await expect(page.getByText("Descreva o problema.")).toBeVisible();
+});
+
+test("Enviar solicitação fica desabilitado enquanto o Turnstile não resolve", async ({
+  page,
+}) => {
+  // Bloqueia o script da Cloudflare: sem ele o desafio nunca resolve, que é o
+  // único jeito determinístico de observar o estado - a sitekey de teste resolve
+  // rápido demais para se apostar em ver o botão desabilitado antes disso.
+  await page.route("https://challenges.cloudflare.com/**", (route) =>
+    route.abort(),
+  );
+  await page.goto("/suporte");
+
+  await page.getByLabel("Título").fill("Algo quebrou");
+  await page.getByLabel("Descrição").fill("Descrição do problema");
+
+  await expect(
+    page.getByRole("button", { name: "Enviar solicitação" }),
+  ).toBeDisabled();
 });
 
 test("Limpar formulário reseta título e descrição", async ({ page }) => {
@@ -121,6 +149,7 @@ test("envia a solicitação com anexo, mostra o load state e reseta ao concluir"
   await page.getByLabel("Descrição").fill("Descrição do problema");
   await page.locator('input[type="file"]').setInputFiles(validImage);
   await expect(page.getByText("valid-image.png")).toBeVisible();
+  await waitForTurnstile(page);
 
   await page.getByRole("button", { name: "Enviar solicitação" }).click();
 
@@ -142,6 +171,7 @@ test("mostra erro e não reseta o formulário quando a api falha", async ({
   await page.goto("/suporte");
   await page.getByLabel("Título").fill("Algo quebrou");
   await page.getByLabel("Descrição").fill("Descrição do problema");
+  await waitForTurnstile(page);
 
   await page.getByRole("button", { name: "Enviar solicitação" }).click();
 
@@ -155,4 +185,13 @@ test("mostra erro e não reseta o formulário quando a api falha", async ({
   await expect(page.getByLabel("Descrição")).toHaveValue(
     "Descrição do problema",
   );
+});
+
+test("renderiza o desafio do Turnstile", async ({ page }) => {
+  await page.goto("/suporte");
+
+  await expect(
+    page.locator('iframe[src*="challenges.cloudflare.com"]'),
+  ).toBeVisible();
+  await waitForTurnstile(page);
 });
