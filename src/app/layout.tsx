@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist_Mono, Oswald, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/query-provider";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { SessionSync } from "@/components/session-sync";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 const oswaldHeading = Oswald({
@@ -74,11 +74,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getSession();
+
   return (
     <html
       lang="pt-BR"
@@ -94,6 +96,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <QueryProvider>
+          <SessionSync user={user} />
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -101,9 +104,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider>
-              <SiteHeader />
-              <main className="flex flex-1 flex-col">{children}</main>
-              <SiteFooter />
+              {children}
               <Toaster />
             </TooltipProvider>
           </ThemeProvider>

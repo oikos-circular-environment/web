@@ -35,18 +35,11 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: "next dev -p 3100",
+      command:
+        "NEXT_PUBLIC_API_URL=http://localhost:3335 CLIENT_API_KEY=e2e-test-client-key TURNSTILE_SITE_KEY=1x00000000000000000000AA TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA next dev -p 3100",
       url: "http://localhost:3100",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      env: {
-        API_INTERNAL_URL: "http://localhost:3335",
-        CLIENT_API_KEY: "e2e-test-client-key",
-        // Chaves de teste da Cloudflare: o widget resolve sozinho e o siteverify
-        // sempre aprova o token, sem interação humana.
-        TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
-        TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
-      },
     },
   ],
 });

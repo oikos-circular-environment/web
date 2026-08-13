@@ -2,11 +2,9 @@
 
 import { z } from "zod";
 
-import { apiFetch } from "@/lib/api";
+import { createServerApiClient } from "@/libs/api/oikos-api";
+import { postV2AuthVerifyEmail } from "@/libs/oikos-sdk";
 
-// Better Auth emite o token de verificação como um JWT (ver createEmailVerificationToken
-// em better-auth/dist/api/routes/email-verification.mjs). A forma abaixo só descarta lixo
-// óbvio antes de bater na API — quem decide se o token é válido/expirado é o backend.
 const verificationTokenSchema = z
   .string()
   .trim()
@@ -33,19 +31,16 @@ export async function verifyEmailAction(
     };
   }
 
-  const response = await apiFetch("/v2/auth/verify-email", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: parsedToken.data }),
+  const { error } = await postV2AuthVerifyEmail({
+    client: createServerApiClient(),
+    body: { token: parsedToken.data },
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
+  if (error) {
     return {
       success: false,
       message:
-        data?.message ??
+        error.message ??
         "Não foi possível confirmar seu e-mail. O link pode ser inválido ou ter expirado.",
     };
   }

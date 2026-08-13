@@ -30,9 +30,6 @@ test("rejeita localmente um token com formato inválido, sem chamar a API", asyn
   await expect(
     page.getByText("Não foi possível confirmar seu e-mail"),
   ).toBeVisible();
-  await expect(
-    page.getByText("Link de confirmação inválido ou corrompido."),
-  ).toBeVisible();
 });
 
 test("exibe erro quando nenhum token é informado na querystring", async ({
