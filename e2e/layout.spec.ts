@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-const routes = ["/", "/politica-de-privacidade", "/termos-de-uso", "/suporte"];
+const routes = [
+  "/",
+  "/politica-de-privacidade",
+  "/termos-de-uso",
+  "/suporte",
+  "/verify-email",
+];
 
 for (const route of routes) {
   test(`sem overflow horizontal em ${route}`, async ({ page }) => {

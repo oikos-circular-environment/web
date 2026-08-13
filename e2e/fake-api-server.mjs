@@ -2,7 +2,35 @@ import { createServer } from "node:http";
 
 const port = Number(process.env.PORT ?? 3335);
 
+async function readJson(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  return JSON.parse(Buffer.concat(chunks).toString("utf-8") || "{}");
+}
+
 const server = createServer(async (req, res) => {
+  if (req.method === "POST" && req.url === "/v2/auth/verify-email") {
+    const { token } = await readJson(req);
+
+    // Better Auth emite o token como JWT (header.payload.signature); o
+    // fake server só distingue um valor "válido" fixo dos demais.
+    if (token !== "aaaaaaaa.bbbbbbbb.cccccccc") {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(
+        JSON.stringify({
+          message: "Invalid or expired reset token",
+          code: "INVALID_RESET_TOKEN",
+          statusCode: 400,
+        }),
+      );
+      return;
+    }
+
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ message: "Email verified successfully" }));
+    return;
+  }
+
   if (req.method !== "POST" || !req.url?.startsWith("/v1/moderation/support")) {
     res.writeHead(404).end();
     return;

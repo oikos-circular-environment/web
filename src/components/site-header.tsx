@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { SiteHeaderMobileNav } from "@/components/site-header-mobile-nav";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -35,7 +36,7 @@ export function SiteHeader() {
           />
           Oikos
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
           <NavigationMenu viewport={false} className="max-w-full">
             <NavigationMenuList className="flex-wrap justify-end">
               {navItems.map((item) => (
@@ -52,6 +53,7 @@ export function SiteHeader() {
           </NavigationMenu>
           <ModeToggle />
         </div>
+        <SiteHeaderMobileNav items={navItems} />
       </div>
     </header>
   );

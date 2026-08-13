@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 
+import { apiFetch } from "@/lib/api";
+
 const SITEVERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -68,13 +70,8 @@ export async function submitSupportRequestAction(
     }
   }
 
-  const baseUrl = process.env.API_INTERNAL_URL;
-
-  const response = await fetch(`${baseUrl}/v1/moderation/support`, {
+  const response = await apiFetch("/v1/moderation/support", {
     method: "POST",
-    headers: {
-      "X-Client-Key": process.env.CLIENT_API_KEY ?? "",
-    },
     body: payload,
   });
 
