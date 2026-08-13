@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("confirma o e-mail com um token válido e exibe CTA para login", async ({
   page,
 }) => {
-  await page.goto("/verify-email?token=valid-token");
+  await page.goto("/verify-email?token=aaaaaaaa.bbbbbbbb.cccccccc");
 
   await expect(page.getByText("E-mail confirmado!")).toBeVisible();
   await expect(
@@ -11,23 +11,27 @@ test("confirma o e-mail com um token válido e exibe CTA para login", async ({
   ).toBeVisible();
 });
 
-test("exibe erro e permite reenviar o e-mail quando o token é inválido", async ({
+test("exibe erro quando o token tem formato de JWT mas é rejeitado pela API", async ({
   page,
 }) => {
-  await page.goto("/verify-email?token=expired-token");
+  await page.goto("/verify-email?token=xxxxxxxx.yyyyyyyy.zzzzzzzz");
 
   await expect(
     page.getByText("Não foi possível confirmar seu e-mail"),
   ).toBeVisible();
   await expect(page.getByText("Invalid or expired reset token")).toBeVisible();
+});
 
-  await page.getByLabel("E-mail").fill("usuario@example.com");
-  await page.getByRole("button", { name: "Reenviar e-mail" }).click();
+test("rejeita localmente um token com formato inválido, sem chamar a API", async ({
+  page,
+}) => {
+  await page.goto("/verify-email?token=nao-parece-um-jwt");
 
   await expect(
-    page.getByText(
-      "Se este e-mail estiver cadastrado, você vai receber um novo link de verificação em instantes.",
-    ),
+    page.getByText("Não foi possível confirmar seu e-mail"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Link de confirmação inválido ou corrompido."),
   ).toBeVisible();
 });
 

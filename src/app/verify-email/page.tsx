@@ -12,7 +12,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { verifyEmailAction } from "./actions";
-import { ResendVerificationEmailForm } from "./resend-verification-email-form";
 
 export const metadata: Metadata = {
   title: "Confirmação de e-mail",
@@ -66,9 +65,9 @@ export default async function VerifyEmailPage({
           </EmptyHeader>
           <EmptyContent>
             <p className="text-sm text-muted-foreground">
-              Informe seu e-mail para receber um novo link de confirmação.
+              Volte para o cadastro no aplicativo Oikos para receber um novo
+              link de verificação.
             </p>
-            <ResendVerificationEmailForm />
           </EmptyContent>
         </Empty>
       )}

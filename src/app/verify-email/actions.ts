@@ -2,7 +2,20 @@
 
 import { z } from "zod";
 
-const emailSchema = z.email("Informe um e-mail válido.");
+import { apiFetch } from "@/lib/api";
+
+// Better Auth emite o token de verificação como um JWT (ver createEmailVerificationToken
+// em better-auth/dist/api/routes/email-verification.mjs). A forma abaixo só descarta lixo
+// óbvio antes de bater na API — quem decide se o token é válido/expirado é o backend.
+const verificationTokenSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .regex(
+    /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/,
+    "Token com formato inválido.",
+  );
 
 export type VerifyEmailResult =
   | { success: true; message: string }
@@ -11,15 +24,19 @@ export type VerifyEmailResult =
 export async function verifyEmailAction(
   token: string,
 ): Promise<VerifyEmailResult> {
-  const baseUrl = process.env.API_INTERNAL_URL;
+  const parsedToken = verificationTokenSchema.safeParse(token);
 
-  const response = await fetch(`${baseUrl}/v2/auth/verify-email`, {
+  if (!parsedToken.success) {
+    return {
+      success: false,
+      message: "Link de confirmação inválido ou corrompido.",
+    };
+  }
+
+  const response = await apiFetch("/v2/auth/verify-email", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Client-Key": process.env.CLIENT_API_KEY ?? "",
-    },
-    body: JSON.stringify({ token }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: parsedToken.data }),
   });
 
   const data = await response.json();
@@ -36,52 +53,5 @@ export async function verifyEmailAction(
   return {
     success: true,
     message: "Seu e-mail foi confirmado com sucesso.",
-  };
-}
-
-export type ResendVerificationEmailState = {
-  status: "idle" | "success" | "error";
-  message?: string;
-};
-
-export async function resendVerificationEmailAction(
-  _prevState: ResendVerificationEmailState,
-  formData: FormData,
-): Promise<ResendVerificationEmailState> {
-  const parsed = emailSchema.safeParse(formData.get("email"));
-
-  if (!parsed.success) {
-    return {
-      status: "error",
-      message: parsed.error.issues[0]?.message ?? "Informe um e-mail válido.",
-    };
-  }
-
-  const baseUrl = process.env.API_INTERNAL_URL;
-
-  const response = await fetch(`${baseUrl}/v2/auth/send-verification-email`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Client-Key": process.env.CLIENT_API_KEY ?? "",
-    },
-    body: JSON.stringify({ email: parsed.data }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return {
-      status: "error",
-      message:
-        data?.message ??
-        "Não foi possível reenviar o e-mail de verificação. Tente novamente.",
-    };
-  }
-
-  return {
-    status: "success",
-    message:
-      "Se este e-mail estiver cadastrado, você vai receber um novo link de verificação em instantes.",
   };
 }
