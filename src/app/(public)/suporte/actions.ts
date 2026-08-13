@@ -1,8 +1,9 @@
 "use server";
 
+import type { AxiosError } from "axios";
 import { z } from "zod";
 
-import { apiFetch } from "@/lib/api";
+import { createServerApiClient } from "@/libs/api/oikos-api";
 
 const SITEVERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -30,8 +31,6 @@ export type SupportRequest = {
   created_at: string;
 };
 
-// O token vale uma única verificação: o widget é resetado no cliente a cada
-// tentativa de envio, com ou sem sucesso.
 async function verifyTurnstileToken(token: string) {
   const response = await fetch(SITEVERIFY_URL, {
     method: "POST",
@@ -70,18 +69,17 @@ export async function submitSupportRequestAction(
     }
   }
 
-  const response = await apiFetch("/v1/moderation/support", {
-    method: "POST",
-    body: payload,
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
+  try {
+    const response = await createServerApiClient().instance.post(
+      "/v1/moderation/support",
+      payload,
+    );
+    return response.data.supportRequest as SupportRequest;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
     throw new Error(
-      data?.message ?? "Não foi possível completar a solicitação.",
+      axiosError.response?.data?.message ??
+        "Não foi possível completar a solicitação.",
     );
   }
-
-  return data.supportRequest as SupportRequest;
 }

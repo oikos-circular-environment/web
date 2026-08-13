@@ -1,7 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # Code comments & design decisions
@@ -34,3 +38,22 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+## Login universal e área logada
+
+- **SSR sempre.** Página nova é Server Component por padrão; só vira Client Component a parte
+  que precisa de interatividade (formulário, dropdown, toggle de sidebar). Busca inicial de dado
+  acontece no server (Server Component/Server Action), nunca num `useEffect` client-side.
+- **MVVM**: View = componente React, só apresentação. ViewModel = hook por feature
+  (`use-<feature>.ts`, em `src/components/<feature>/hooks/` ou `src/app/<rota>/_hooks/`) — chama
+  o SDK gerado/TanStack Query, lê/escreve Zustand, devolve dado e handlers prontos pra View.
+  Model = tipos gerados pelo SDK (hey-api) + entidades de domínio.
+- **Zustand**: uma store por conceito estreito (`use-session-store.ts`,
+  `use-active-organization-store.ts`). Se passar de ~80-100 linhas ou acumular ações de mais de
+  um domínio, quebrar em duas.
+- **Loading state**: conteúdo carregando usa `Skeleton` do shadcn; botão/input/select pendente
+  usa `Spinner` nativo do shadcn (já existe, usado em `verify-email/loading.tsx`). Nunca spinner
+  customizado ou texto "Carregando...".
+- **SDK gerado (`src/libs/oikos-sdk/`) nunca é editado à mão.** Toda chamada à API passa por ele
+  + o wrapper axios (`src/libs/api/oikos-api.ts`), exceto autenticação (Better Auth tem cliente
+  próprio, ver `src/lib/auth-client.ts`).

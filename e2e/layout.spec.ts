@@ -21,6 +21,7 @@ for (const route of routes) {
 }
 
 test("alterna entre tema claro e escuro", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
   const toggle = page.getByRole("button", { name: "Alternar tema" });
   await expect(toggle).toBeVisible();

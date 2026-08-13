@@ -30,6 +30,7 @@
   },
   "linter": {
     "enabled": true,
+    "includes": ["**", "!src/libs/oikos-sdk/**"],
     "rules": {
       "preset": "recommended",
       "suspicious": {
