@@ -3,6 +3,7 @@
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
 
+import { AccountMenuButton } from "@/components/account-menu-button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -52,7 +53,8 @@ export function SiteHeaderMobileNav({ items }: { items: NavItem[] }) {
             </SheetClose>
           ))}
         </nav>
-        <SheetFooter>
+        <SheetFooter className="flex-row items-center justify-between">
+          <AccountMenuButton />
           <ModeToggle />
         </SheetFooter>
       </SheetContent>
