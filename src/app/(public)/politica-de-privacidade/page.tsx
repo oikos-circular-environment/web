@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 import { LegalDocMetaBlock } from "@/components/legal-doc-meta";
 import { MarkdownContent } from "@/components/markdown-content";
-import { parseLegalDoc } from "@/lib/legal-doc";
+import { parseLegalDoc } from "@/libs/legal-doc";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade",

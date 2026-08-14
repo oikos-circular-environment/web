@@ -4,6 +4,7 @@ import type { AxiosError } from "axios";
 import { z } from "zod";
 
 import { createServerApiClient } from "@/libs/api/oikos-api";
+import { getTurnstileSecretKey } from "@/libs/env";
 
 const SITEVERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -36,7 +37,7 @@ async function verifyTurnstileToken(token: string) {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      secret: process.env.TURNSTILE_SECRET_KEY ?? "",
+      secret: getTurnstileSecretKey(),
       response: token,
     }),
   });

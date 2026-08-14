@@ -6,7 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/libs/session";
 
 export default async function DashboardLayout({
   children,

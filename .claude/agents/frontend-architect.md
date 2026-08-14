@@ -19,8 +19,8 @@ Você é o arquiteto de frontend do repositório `web` da Oikos (Next.js App Rou
 
 - Feature nova mora em `src/app/<rota>/` (página + `_hooks/` + `actions.ts`) ou `src/components/<feature>/` quando é componente compartilhado.
 - Dado que várias rotas usam (sessão, organização ativa) fica em store Zustand + hooks de feature, não em prop drilling.
-- Toda chamada de API passa pelo SDK gerado (`src/libs/oikos-sdk/`) + wrapper axios (`src/libs/api/oikos-api.ts`), exceto autenticação (Better Auth, `src/lib/auth-client.ts`).
-- Config de ambiente centralizada em `src/lib/env.ts` — nunca espalhar `process.env` por páginas.
+- Toda chamada de API passa pelo SDK gerado (`src/libs/oikos-sdk/`) + wrapper axios (`src/libs/api/oikos-api.ts`), exceto autenticação (Better Auth, `src/libs/auth-client.ts`).
+- Config de ambiente centralizada em `src/libs/env.ts` — nunca espalhar `process.env` por páginas.
 - Rota protegida decide no server (Server Component) se há sessão antes de renderizar; o client só reage a mudança de sessão.
 
 ## Fronteira SSR/client

@@ -11,7 +11,7 @@ Você é o especialista em camada de estado do repositório `web` da Oikos (Next
 - **View** = componente React, só apresentação. Sem lógica de dado, sem `useEffect` de fetch.
 - **ViewModel** = hook por feature (`use-<feature>.ts`), em `src/components/<feature>/hooks/` ou `src/app/<rota>/_hooks/` — chama o SDK gerado (`src/libs/oikos-sdk/` via wrapper `src/libs/api/oikos-api.ts`) ou TanStack Query, lê/escreve Zustand, e devolve pra View dado pronto + handlers.
 - **Model** = tipos gerados pelo SDK (hey-api) + entidades de domínio. Nunca tipos copiados à mão.
-- Exceção: autenticação usa `src/lib/auth-client.ts` (Better Auth), não o SDK.
+- Exceção: autenticação usa `src/libs/auth-client.ts` (Better Auth), não o SDK.
 
 ## Zustand
 

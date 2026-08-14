@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { signOut } from "@/lib/session";
+import { signOut } from "@/libs/session";
 
 export async function logoutAction(): Promise<void> {
   await signOut();

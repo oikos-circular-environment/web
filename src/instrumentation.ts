@@ -1,23 +1,24 @@
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import type { Instrumentation } from "next";
+import { getOtelEndpoint } from "@/libs/env";
 
 // Guard: sem OTEL_EXPORTER_OTLP_ENDPOINT, register() nao cria o SDK — no-op em dev local.
 export async function register() {
   // O Next builda este arquivo tambem para o Edge Runtime, que nao tem process.on/etc do
-  // Node. O setup real (registerOTel + metricas de runtime + logs) mora em lib/otel-node.ts,
+  // Node. O setup real (registerOTel + metricas de runtime + logs) mora em libs/otel-node.ts,
   // carregado via import() dinamico aqui dentro do branch nodejs pra nunca entrar na
   // analise estatica do bundle edge.
   if (process.env.NEXT_RUNTIME !== "nodejs") {
     return;
   }
 
-  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+  const endpoint = getOtelEndpoint();
 
   if (!endpoint) {
     return;
   }
 
-  const { startOtel } = await import("./lib/otel-node");
+  const { startOtel } = await import("./libs/otel-node");
   startOtel(endpoint);
 }
 

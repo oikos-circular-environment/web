@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { signInWithPassword } from "@/lib/session";
+import { signInWithPassword } from "@/libs/session";
 
 const loginSchema = z.object({
   email: z
