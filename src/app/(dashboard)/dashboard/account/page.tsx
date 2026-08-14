@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/libs/session";
 import { AccountPanel } from "./_components/account-panel";
 
 export default async function AccountPage() {

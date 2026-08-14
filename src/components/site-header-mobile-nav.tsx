@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn } from "@/libs/utils";
 
 type NavItem = { href: string; label: string };
 

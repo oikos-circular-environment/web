@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/lib/session";
+import { getSession } from "@/libs/session";
 import { UsersList } from "./_components/users-list";
 import { getUsersAction } from "./actions";
 

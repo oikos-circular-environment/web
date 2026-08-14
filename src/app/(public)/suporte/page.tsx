@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 
+import { getTurnstileSiteKey } from "@/libs/env";
 import { SupportForm } from "./support-form";
 
 export const metadata: Metadata = {
@@ -16,13 +17,7 @@ export default async function SupportPage() {
   // a imagem Docker é construída uma vez e a chave chega por env em runtime.
   await connection();
 
-  const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY;
-
-  if (!turnstileSiteKey) {
-    throw new Error(
-      "TURNSTILE_SITE_KEY não configurada. O formulário de Suporte depende do Turnstile - em desenvolvimento, use a sitekey de teste da Cloudflare (1x00000000000000000000AA) junto de TURNSTILE_SECRET_KEY.",
-    );
-  }
+  const turnstileSiteKey = getTurnstileSiteKey();
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-16">

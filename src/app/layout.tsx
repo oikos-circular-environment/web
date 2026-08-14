@@ -6,8 +6,8 @@ import { SessionSync } from "@/components/session-sync";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { getSession } from "@/lib/session";
-import { cn } from "@/lib/utils";
+import { getSession } from "@/libs/session";
+import { cn } from "@/libs/utils";
 
 const oswaldHeading = Oswald({
   subsets: ["latin"],

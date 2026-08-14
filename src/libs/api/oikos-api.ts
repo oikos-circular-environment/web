@@ -1,15 +1,12 @@
-import { getApiUrl } from "@/lib/env";
+import { getApiUrl, getClientApiKey } from "@/libs/env";
 import type { Client } from "@/libs/oikos-sdk/client";
 import { createClient } from "@/libs/oikos-sdk/client";
-
-const API_KEY =
-  process.env.CLIENT_API_KEY ?? process.env.NEXT_PUBLIC_CLIENT_API_KEY ?? "";
 
 function buildClient(config?: Parameters<typeof createClient>[0]): Client {
   const api = createClient({ baseURL: getApiUrl(), ...config });
 
   api.instance.interceptors.request.use((requestConfig) => {
-    requestConfig.headers.set("X-Client-Key", API_KEY);
+    requestConfig.headers.set("X-Client-Key", getClientApiKey());
     return requestConfig;
   });
 

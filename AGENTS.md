@@ -56,4 +56,4 @@ Rules:
   customizado ou texto "Carregando...".
 - **SDK gerado (`src/libs/oikos-sdk/`) nunca é editado à mão.** Toda chamada à API passa por ele
   + o wrapper axios (`src/libs/api/oikos-api.ts`), exceto autenticação (Better Auth tem cliente
-  próprio, ver `src/lib/auth-client.ts`).
+  próprio, ver `src/libs/auth-client.ts`).

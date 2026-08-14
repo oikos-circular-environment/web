@@ -19,7 +19,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/libs/utils";
 
 const defaultStyles = {
   dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",

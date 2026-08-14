@@ -1,4 +1,4 @@
-import type { LegalDocMeta } from "@/lib/legal-doc";
+import type { LegalDocMeta } from "@/libs/legal-doc";
 
 export function LegalDocMetaBlock({ meta }: { meta: LegalDocMeta }) {
   return (
