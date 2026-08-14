@@ -36,6 +36,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -55,3 +56,10 @@ next-env.d.ts
 
 # design.md is a generated copy of the monorepo root DESIGN.md (see predev/prebuild)
 /public/design.md
+
+# graphify knowledge graph (regenerated locally by hooks)
+graphify-out/
+
+# local per-machine agent config (embeds absolute paths)
+.claude/settings.json
+.claude/settings.local.json

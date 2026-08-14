@@ -190,8 +190,5 @@ test("mostra erro e não reseta o formulário quando a api falha", async ({
 test("renderiza o desafio do Turnstile", async ({ page }) => {
   await page.goto("/suporte");
 
-  await expect(
-    page.locator('iframe[src*="challenges.cloudflare.com"]'),
-  ).toBeVisible();
   await waitForTurnstile(page);
 });

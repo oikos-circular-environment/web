@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-const routes = ["/", "/politica-de-privacidade", "/termos-de-uso", "/suporte"];
+const routes = [
+  "/",
+  "/politica-de-privacidade",
+  "/termos-de-uso",
+  "/suporte",
+  "/verify-email",
+];
 
 for (const route of routes) {
   test(`sem overflow horizontal em ${route}`, async ({ page }) => {
@@ -15,6 +21,7 @@ for (const route of routes) {
 }
 
 test("alterna entre tema claro e escuro", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
   const toggle = page.getByRole("button", { name: "Alternar tema" });
   await expect(toggle).toBeVisible();
