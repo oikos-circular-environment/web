@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Pagination,
   PaginationContent,
@@ -38,6 +39,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -47,8 +55,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 
 const USERS_LIMIT = 10;
+
+const BAN_DURATION_OPTIONS = [
+  { value: "permanent", label: "Permanente", seconds: undefined },
+  { value: "1d", label: "1 dia", seconds: 60 * 60 * 24 },
+  { value: "7d", label: "7 dias", seconds: 60 * 60 * 24 * 7 },
+  { value: "30d", label: "30 dias", seconds: 60 * 60 * 24 * 30 },
+] as const;
 
 type UsersListProps = {
   initialData?: Awaited<ReturnType<typeof import("../actions").getUsersAction>>;
@@ -56,6 +72,8 @@ type UsersListProps = {
 
 export function UsersList({ initialData }: UsersListProps) {
   const searchId = useId();
+  const banReasonId = useId();
+  const banDurationId = useId();
   const {
     users,
     total,
@@ -81,9 +99,18 @@ export function UsersList({ initialData }: UsersListProps) {
     | { type: "remove"; userId: string; email: string }
     | null
   >(null);
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] =
+    useState<(typeof BAN_DURATION_OPTIONS)[number]["value"]>("permanent");
 
   const totalPages = Math.ceil(total / USERS_LIMIT);
   const currentPage = Math.floor(offset / USERS_LIMIT) + 1;
+
+  function openBanDialog(userId: string, email: string) {
+    setBanReason("");
+    setBanDuration("permanent");
+    setDialog({ type: "ban", userId, email });
+  }
 
   async function handleRoleChange(id: string, role: string) {
     try {
@@ -97,8 +124,15 @@ export function UsersList({ initialData }: UsersListProps) {
   }
 
   async function handleBan(id: string) {
+    const seconds = BAN_DURATION_OPTIONS.find(
+      (option) => option.value === banDuration,
+    )?.seconds;
     try {
-      await ban({ id });
+      await ban({
+        id,
+        banReason: banReason.trim() || undefined,
+        banExpiresIn: seconds,
+      });
       toast.success("Usuário banido.");
     } catch (error) {
       toast.error(
@@ -246,13 +280,7 @@ export function UsersList({ initialData }: UsersListProps) {
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem
-                          onClick={() =>
-                            setDialog({
-                              type: "ban",
-                              userId: user.id,
-                              email: user.email,
-                            })
-                          }
+                          onClick={() => openBanDialog(user.id, user.email)}
                           disabled={isBanning}
                           variant="destructive"
                         >
@@ -343,6 +371,37 @@ export function UsersList({ initialData }: UsersListProps) {
               Essa ação pode ser desfeita posteriormente.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={banReasonId}>Motivo (opcional)</Label>
+              <Textarea
+                id={banReasonId}
+                value={banReason}
+                onChange={(event) => setBanReason(event.target.value)}
+                placeholder="Descreva o motivo do banimento"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={banDurationId}>Duração</Label>
+              <Select
+                value={banDuration}
+                onValueChange={(value) =>
+                  setBanDuration(value as typeof banDuration)
+                }
+              >
+                <SelectTrigger id={banDurationId} className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BAN_DURATION_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction

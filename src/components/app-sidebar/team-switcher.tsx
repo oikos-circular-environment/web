@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Check, ChevronsUpDown } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -36,7 +36,22 @@ export function TeamSwitcher() {
   );
 
   if (organizations.length === 0) {
-    return null;
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" asChild tooltip="Criar organização">
+            <a href="/dashboard/organizacoes/nova">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg border border-dashed border-sidebar-border text-sidebar-foreground">
+                <Plus className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">Criar organização</span>
+              </div>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
   }
 
   const activeOrganization =

@@ -1,6 +1,12 @@
 "use client";
 
-import { ChevronsUpDown, MapIcon, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Building2,
+  ChevronsUpDown,
+  Megaphone,
+  Recycle,
+  ShieldCheck,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { getUserInitials, NavUser } from "@/components/nav-user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,30 +43,42 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Geral</SidebarGroupLabel>
+          <SidebarGroupLabel>Serviços</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === "/dashboard/profile"}
-                  tooltip="Profile"
+                  isActive={pathname === "/dashboard/market"}
+                  tooltip="Pontos de coleta"
                   asChild
                 >
-                  <a href="/dashboard/profile">
-                    <UserRound />
-                    <span>Profile</span>
+                  <a href="/dashboard/market">
+                    <Recycle />
+                    <span>Pontos de coleta</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={pathname === "/dashboard/market"}
-                  tooltip="Market"
+                  isActive={pathname === "/dashboard/denuncias"}
+                  tooltip="Denúncias"
                   asChild
                 >
-                  <a href="/dashboard/market">
-                    <MapIcon />
-                    <span>Market</span>
+                  <a href="/dashboard/denuncias">
+                    <Megaphone />
+                    <span>Denúncias</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname === "/dashboard/empresas"}
+                  tooltip="Minhas empresas"
+                  asChild
+                >
+                  <a href="/dashboard/empresas">
+                    <Building2 />
+                    <span>Minhas empresas</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
