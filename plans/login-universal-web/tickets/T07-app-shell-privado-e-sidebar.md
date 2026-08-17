@@ -1,6 +1,6 @@
 # T07 — App shell privado + sidebar (org switcher + nav-user)
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído (entrou junto de `987e739`, sem marcação no plano até agora)
 **Depende de:** T04
 **Módulos:** `src/app/(dashboard)/`, `src/components/app-sidebar/`
 
