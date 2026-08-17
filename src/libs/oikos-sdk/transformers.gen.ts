@@ -19,6 +19,7 @@ import type {
   GetV2ModerationUsersByIdResponse,
   GetV2ModerationUsersByIdSessionsResponse,
   GetV2ModerationUsersResponse,
+  GetV2UsersMeResponse,
   PatchV1CompaniesByIdStatusResponse,
   PatchV1ComplaintsByIdCanceledResponse,
   PatchV1ComplaintsByIdResolvedResponse,
@@ -61,6 +62,16 @@ export const getV2AuthSessionResponseTransformer = async (
   }
   data.user.created_at = new Date(data.user.created_at);
   data.user.updated_at = new Date(data.user.updated_at);
+  return data;
+};
+
+export const getV2UsersMeResponseTransformer = async (
+  data: any,
+): Promise<GetV2UsersMeResponse> => {
+  data.user.created_at = new Date(data.user.created_at);
+  if (data.user.deleted_at) {
+    data.user.deleted_at = new Date(data.user.deleted_at);
+  }
   return data;
 };
 
@@ -500,6 +511,28 @@ export const getV2ModerationUsersByIdResponseTransformer = async (
   }
   data.user.created_at = new Date(data.user.created_at);
   data.user.updated_at = new Date(data.user.updated_at);
+  if (data.profile) {
+    data.profile.created_at = new Date(data.profile.created_at);
+    data.profile.updated_at = new Date(data.profile.updated_at);
+    if (data.profile.address) {
+      data.profile.address.created_at = new Date(
+        data.profile.address.created_at,
+      );
+      data.profile.address.updated_at = new Date(
+        data.profile.address.updated_at,
+      );
+    }
+    if (data.profile.profile_image) {
+      data.profile.profile_image.created_at = new Date(
+        data.profile.profile_image.created_at,
+      );
+    }
+  }
+  data.accounts = data.accounts.map((item: any) => {
+    item.created_at = new Date(item.created_at);
+    item.updated_at = new Date(item.updated_at);
+    return item;
+  });
   return data;
 };
 

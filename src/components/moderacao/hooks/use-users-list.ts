@@ -57,7 +57,11 @@ export function useUsersList(
       id: string;
       banReason?: string;
       banExpiresIn?: number;
-    }) => banUserAction(id, { banReason, banExpiresIn }),
+    }) =>
+      banUserAction(id, {
+        ban_reason: banReason,
+        ban_expires_in: banExpiresIn,
+      }),
     onSuccess: invalidate,
   });
 

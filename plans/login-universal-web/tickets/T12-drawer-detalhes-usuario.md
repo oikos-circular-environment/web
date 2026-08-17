@@ -1,6 +1,7 @@
 # T12 — Drawer de detalhes do usuário (moderação)
 
-**Status:** [ ] Bloqueado (aguardando mudança na api — ver `Dependência` abaixo)
+**Status:** [x] Concluído (api entregou profile/accounts/sessões; SDK regenerado; drawer
+implementado — verificado com tsc/lint/build/87 testes Playwright + validação manual no browser)
 **Depende de:** T10, e de uma mudança na api (repo `api`, ainda não iniciada)
 **Módulos:** `src/app/(dashboard)/dashboard/moderacao/`, `src/components/moderacao/`,
 `src/components/ui/sheet.tsx`

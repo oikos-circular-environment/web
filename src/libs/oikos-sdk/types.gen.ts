@@ -4,6 +4,114 @@ export type ClientOptions = {
   baseURL: "http://localhost:3333" | (string & {});
 };
 
+export type PostV1AuthLoginData = {
+  body: {
+    email: string;
+    password: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/v1/auth/login";
+};
+
+export type PostV1AuthLoginErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type PostV1AuthLoginError =
+  PostV1AuthLoginErrors[keyof PostV1AuthLoginErrors];
+
+export type PostV1AuthLoginResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    token: string;
+    refreshToken: string;
+  };
+};
+
+export type PostV1AuthLoginResponse =
+  PostV1AuthLoginResponses[keyof PostV1AuthLoginResponses];
+
+export type PatchV1AuthRefreshData = {
+  body: {
+    refreshToken?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/v1/auth/refresh";
+};
+
+export type PatchV1AuthRefreshErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type PatchV1AuthRefreshError =
+  PatchV1AuthRefreshErrors[keyof PatchV1AuthRefreshErrors];
+
+export type PatchV1AuthRefreshResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    token: string;
+    refreshToken: string;
+  };
+};
+
+export type PatchV1AuthRefreshResponse =
+  PatchV1AuthRefreshResponses[keyof PatchV1AuthRefreshResponses];
+
+export type PostV1AuthLogoutData = {
+  body: {
+    refreshToken?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/v1/auth/logout";
+};
+
+export type PostV1AuthLogoutErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type PostV1AuthLogoutError =
+  PostV1AuthLogoutErrors[keyof PostV1AuthLogoutErrors];
+
+export type PostV1AuthLogoutResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    message: string;
+  };
+};
+
+export type PostV1AuthLogoutResponse =
+  PostV1AuthLogoutResponses[keyof PostV1AuthLogoutResponses];
+
 export type PostV2AuthSignUpData = {
   body: {
     name: string;
@@ -92,6 +200,7 @@ export type PostV2AuthSignInResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -171,6 +280,7 @@ export type GetV2AuthSessionResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -361,6 +471,87 @@ export type PostV2AuthVerifyEmailResponses = {
 export type PostV2AuthVerifyEmailResponse =
   PostV2AuthVerifyEmailResponses[keyof PostV2AuthVerifyEmailResponses];
 
+export type PostV2UsersRegisterData = {
+  body: {
+    email: string;
+    password: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/v2/users/register";
+};
+
+export type PostV2UsersRegisterErrors = {
+  /**
+   * Default Response
+   */
+  409: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type PostV2UsersRegisterError =
+  PostV2UsersRegisterErrors[keyof PostV2UsersRegisterErrors];
+
+export type PostV2UsersRegisterResponses = {
+  /**
+   * Default Response
+   */
+  204: {
+    [key: string]: never;
+  };
+};
+
+export type PostV2UsersRegisterResponse =
+  PostV2UsersRegisterResponses[keyof PostV2UsersRegisterResponses];
+
+export type GetV2UsersMeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/v2/users/me";
+};
+
+export type GetV2UsersMeErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type GetV2UsersMeError = GetV2UsersMeErrors[keyof GetV2UsersMeErrors];
+
+export type GetV2UsersMeResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    user: {
+      id: string;
+      email: string;
+      created_at: Date;
+      deleted_at: Date | null;
+    };
+  };
+};
+
+export type GetV2UsersMeResponse =
+  GetV2UsersMeResponses[keyof GetV2UsersMeResponses];
+
 export type DeleteV2AccountsMeData = {
   body?: never;
   path?: never;
@@ -459,6 +650,59 @@ export type PatchV2AccountsMeCancelDeletionResponses = {
 
 export type PatchV2AccountsMeCancelDeletionResponse =
   PatchV2AccountsMeCancelDeletionResponses[keyof PatchV2AccountsMeCancelDeletionResponses];
+
+export type PatchV2UsersMeChangePasswordData = {
+  body: {
+    current_password: string;
+    new_password: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/v2/users/me/change-password";
+};
+
+export type PatchV2UsersMeChangePasswordErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+  /**
+   * Default Response
+   */
+  422: {
+    message: string;
+    code: string;
+    statusCode: number;
+  };
+};
+
+export type PatchV2UsersMeChangePasswordError =
+  PatchV2UsersMeChangePasswordErrors[keyof PatchV2UsersMeChangePasswordErrors];
+
+export type PatchV2UsersMeChangePasswordResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    token: string;
+    refreshToken: string;
+  };
+};
+
+export type PatchV2UsersMeChangePasswordResponse =
+  PatchV2UsersMeChangePasswordResponses[keyof PatchV2UsersMeChangePasswordResponses];
 
 export type GetV1ProfilesData = {
   body?: never;
@@ -3511,6 +3755,7 @@ export type GetV2ModerationUsersResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -3691,6 +3936,7 @@ export type GetV2ModerationUsersByIdResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -3700,6 +3946,47 @@ export type GetV2ModerationUsersByIdResponses = {
         role: string;
       }>;
     };
+    profile: {
+      id: string;
+      user_id: string;
+      full_name: string;
+      display_name: string;
+      phone: string;
+      created_at: Date;
+      updated_at: Date;
+      address: {
+        id: string;
+        zip_code: string;
+        street: string;
+        number: string;
+        complement: string | null;
+        district: string;
+        city_ibge_id: number;
+        city: string;
+        state_ibge_id: number;
+        state: string;
+        state_code: string;
+        latitude: number;
+        longitude: number;
+        created_at: Date;
+        updated_at: Date;
+      } | null;
+      profile_image: {
+        id: string;
+        url: string;
+        file_name: string;
+        path: string;
+        created_at: Date;
+      } | null;
+    } | null;
+    accounts: Array<{
+      id: string;
+      provider_id: string;
+      account_id: string;
+      scope: string | null;
+      created_at: Date;
+      updated_at: Date;
+    }>;
   };
 };
 
@@ -3770,6 +4057,7 @@ export type PatchV2ModerationUsersByIdRoleResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -3787,8 +4075,8 @@ export type PatchV2ModerationUsersByIdRoleResponse =
 
 export type PostV2ModerationUsersByIdBanData = {
   body: {
-    banReason?: string;
-    banExpiresIn?: number;
+    ban_reason?: string;
+    ban_expires_in?: number;
   };
   path: {
     id: string;
@@ -3858,6 +4146,7 @@ export type PostV2ModerationUsersByIdBanResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -3943,6 +4232,7 @@ export type PostV2ModerationUsersByIdUnbanResponses = {
       banned: boolean;
       ban_reason: string | null;
       ban_expires: Date | null;
+      auth_source: string;
       created_at: Date;
       updated_at: Date;
       organizations?: Array<{
@@ -4008,6 +4298,8 @@ export type GetV2ModerationUsersByIdSessionsResponses = {
       expires_at: Date;
       user_id: string;
       impersonated_by?: string | null;
+      ip_address: string | null;
+      user_agent: string | null;
     }>;
   };
 };

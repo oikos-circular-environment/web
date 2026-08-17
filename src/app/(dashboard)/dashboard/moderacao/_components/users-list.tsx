@@ -2,12 +2,13 @@
 
 import {
   BanIcon,
+  EyeIcon,
   MoreHorizontalIcon,
   ShieldIcon,
   TrashIcon,
   UserXIcon,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useUsersList } from "@/components/moderacao/hooks/use-users-list";
@@ -56,6 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { UserDetailsDrawer } from "./user-details-drawer";
 
 const USERS_LIMIT = 10;
 
@@ -102,6 +104,8 @@ export function UsersList({ initialData }: UsersListProps) {
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] =
     useState<(typeof BAN_DURATION_OPTIONS)[number]["value"]>("permanent");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const totalPages = Math.ceil(total / USERS_LIMIT);
   const currentPage = Math.floor(offset / USERS_LIMIT) + 1;
@@ -192,7 +196,7 @@ export function UsersList({ initialData }: UsersListProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div ref={containerRef} className="relative flex flex-1 flex-col gap-4">
       <div className="flex items-center gap-2">
         <Input
           id={searchId}
@@ -225,7 +229,11 @@ export function UsersList({ initialData }: UsersListProps) {
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow
+                key={user.id}
+                className="cursor-pointer"
+                onClick={() => setSelectedUserId(user.id)}
+              >
                 <TableCell>{user.name ?? "—"}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
@@ -244,7 +252,7 @@ export function UsersList({ initialData }: UsersListProps) {
                     <Badge variant="outline">Ativo</Badge>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" aria-label="Ações">
@@ -252,6 +260,13 @@ export function UsersList({ initialData }: UsersListProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setSelectedUserId(user.id)}
+                      >
+                        <EyeIcon />
+                        Ver detalhes
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       {user.role !== "moderator" ? (
                         <DropdownMenuItem
                           onClick={() => handleRoleChange(user.id, "moderator")}
@@ -439,6 +454,12 @@ export function UsersList({ initialData }: UsersListProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UserDetailsDrawer
+        userId={selectedUserId}
+        onOpenChange={(open) => !open && setSelectedUserId(null)}
+        container={containerRef.current}
+      />
     </div>
   );
 }
