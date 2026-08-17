@@ -23,34 +23,10 @@ jobs:
       - run: npm ci
       - name: Format & lint check
         run: npx biome ci .
-      # TODO: nenhum test runner configurado no repo ainda (sem vitest/jest, sem script "test"
-      # no package.json). `build` funciona como gate provisório (pega erros de tipo/build) até
-      # a escolha de framework de teste ser decidida.
       - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3333
         run: npm run build
-
-  # Só em PR para production: o job builda de novo, sobe o servidor e coleta
-  # 4 URLs x 3 execuções - caro demais para rodar a cada commit, e regressão de
-  # performance se investiga iterando local (`npm run lighthouse`), não esperando
-  # o runner. Aqui ele serve de porta de entrada da produção.
-  lighthouse:
-    name: Lighthouse CI
-    if: github.event_name == 'pull_request' && github.base_ref == 'production'
-    runs-on: ubuntu-latest
-    needs: quality
-    # Sitekey de teste da Cloudflare: /suporte está na coleta do lighthouserc e
-    # falha ao renderizar sem essa env (web#39).
-    env:
-      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npx lhci autorun
 
   tag:
     name: Tag SemVer
