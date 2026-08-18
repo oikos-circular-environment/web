@@ -105,7 +105,6 @@ export function UsersList({ initialData }: UsersListProps) {
   const [banDuration, setBanDuration] =
     useState<(typeof BAN_DURATION_OPTIONS)[number]["value"]>("permanent");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
   const totalPages = Math.ceil(total / USERS_LIMIT);
   const currentPage = Math.floor(offset / USERS_LIMIT) + 1;
@@ -196,7 +195,7 @@ export function UsersList({ initialData }: UsersListProps) {
   }
 
   return (
-    <div ref={setContainer} className="relative flex flex-1 flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <Input
           id={searchId}
@@ -458,7 +457,6 @@ export function UsersList({ initialData }: UsersListProps) {
       <UserDetailsDrawer
         userId={selectedUserId}
         onOpenChange={(open) => !open && setSelectedUserId(null)}
-        container={container}
       />
     </div>
   );

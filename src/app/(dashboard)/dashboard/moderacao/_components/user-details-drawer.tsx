@@ -69,24 +69,18 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 type UserDetailsDrawerProps = {
   userId: string | null;
   onOpenChange: (open: boolean) => void;
-  container: HTMLElement | null;
 };
 
 export function UserDetailsDrawer({
   userId,
   onOpenChange,
-  container,
 }: UserDetailsDrawerProps) {
   const { user, profile, accounts, sessions, isLoading } =
     useUserDetails(userId);
 
   return (
     <Sheet open={userId !== null} onOpenChange={onOpenChange}>
-      <SheetContent
-        container={container}
-        className="absolute inset-y-4 right-4 data-[side=right]:inset-y-4 data-[side=right]:right-4 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-md data-[side=right]:rounded-xl data-[side=right]:border data-[side=right]:shadow-2xl data-[side=right]:sm:max-w-md"
-        overlayClassName="absolute inset-0"
-      >
+      <SheetContent className="data-[side=right]:inset-y-4 data-[side=right]:right-4 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-md data-[side=right]:rounded-xl data-[side=right]:border data-[side=right]:shadow-2xl data-[side=right]:sm:max-w-md">
         {isLoading || !user ? (
           <div className="flex flex-col gap-4 p-4">
             <Skeleton className="h-12 w-full" />
