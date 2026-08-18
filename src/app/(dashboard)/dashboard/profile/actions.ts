@@ -2,8 +2,13 @@
 
 import { cookies } from "next/headers";
 import { createServerApiClient } from "@/libs/api/oikos-api";
-import { getV1Profiles, putV1Profiles } from "@/libs/oikos-sdk/sdk.gen";
+import {
+  getV1Profiles,
+  getV1ProfilesAddresses,
+  putV1Profiles,
+} from "@/libs/oikos-sdk/sdk.gen";
 import type {
+  GetV1ProfilesAddressesResponse,
   GetV1ProfilesResponse,
   PutV1ProfilesData,
 } from "@/libs/oikos-sdk/types.gen";
@@ -30,6 +35,19 @@ export async function getProfileAction(): Promise<GetV1ProfilesResponse | null> 
   if (!token) return null;
 
   const { data, error } = await getV1Profiles({
+    client: await buildServerClient(),
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (error || !data) return null;
+  return data;
+}
+
+export async function getProfileAddressAction(): Promise<GetV1ProfilesAddressesResponse | null> {
+  const token = await getSessionToken();
+  if (!token) return null;
+
+  const { data, error } = await getV1ProfilesAddresses({
     client: await buildServerClient(),
     headers: { Authorization: `Bearer ${token}` },
   });

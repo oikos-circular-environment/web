@@ -1,6 +1,6 @@
 # T09 — Market (exemplo de feature, listagem paginada)
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído (entrou junto de `987e739`, sem marcação no plano até agora)
 **Depende de:** T03, T07
 **Módulos:** `src/app/(dashboard)/market/`, `src/components/market/`, `src/contexts/market-context.tsx`
 

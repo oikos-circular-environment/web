@@ -80,6 +80,7 @@ Ver `tickets/`. Ordem sugerida (T01-T04 são fundação, sem eles nada do resto 
 9. **T09** — Market (exemplo de feature, listagem paginada).
 10. **T10** — Moderação de usuários (exemplo de feature, só `moderator`).
 11. **T11** — Testes Playwright críticos.
+12. **T12** — Drawer de detalhes do usuário (moderação). Bloqueado por mudança na api (ver ticket).
 
 T05 depende de T04; T06/T07 dependem de T04 (precisam saber se há sessão); T08/T09/T10 dependem
 de T03 e T07 (SDK + shell). T09 e T10 podem rodar em paralelo entre si.

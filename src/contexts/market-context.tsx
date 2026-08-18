@@ -5,14 +5,23 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { z } from "zod";
+
+import { useProfileAddress } from "@/components/profile/hooks/use-profile-address";
+import {
+  type ReverseGeocodedAddress,
+  useGeolocationStore,
+} from "@/stores/use-geolocation-store";
 
 export const DEFAULT_LATITUDE = -23.5505;
 export const DEFAULT_LONGITUDE = -46.6333;
 export const DEFAULT_RADIUS = 50;
 export const PAGE_LIMIT = 10;
+
+export type LocationSource = "profile" | "browser";
 
 const marketFiltersSchema = z.object({
   query: z
@@ -25,15 +34,33 @@ const marketFiltersSchema = z.object({
 
 export type MarketFilters = z.infer<typeof marketFiltersSchema>;
 
+function formatAddressLine(address: ReverseGeocodedAddress): string | null {
+  const parts = [
+    address.street,
+    address.neighborhood,
+    address.city,
+    address.state,
+    address.postcode ? `CEP ${address.postcode}` : null,
+    address.country,
+  ].filter((part): part is string => Boolean(part));
+  return parts.length > 0 ? parts.join(", ") : null;
+}
+
 type MarketContextValue = {
   filters: MarketFilters;
   latitude: number;
   longitude: number;
   isLocating: boolean;
   locationError: string | null;
+  locationSource: LocationSource;
+  hasProfileAddress: boolean;
+  profileAddressLabel: string | null;
+  browserAddressLabel: string | null;
+  isResolvingBrowserAddress: boolean;
   setQuery: (query: string) => void;
   setRadius: (radius: number) => void;
   setCategory: (category: MarketFilters["category"]) => void;
+  setLocationSource: (source: LocationSource) => void;
   requestLocation: () => void;
 };
 
@@ -55,10 +82,26 @@ export function MarketProvider({ children }: { children: React.ReactNode }) {
       category: "",
     }),
   );
-  const [latitude, setLatitude] = useState(DEFAULT_LATITUDE);
-  const [longitude, setLongitude] = useState(DEFAULT_LONGITUDE);
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationSource, setLocationSourceState] =
+    useState<LocationSource>("browser");
+  const [hasChosenSource, setHasChosenSource] = useState(false);
+
+  const geolocationStatus = useGeolocationStore((state) => state.status);
+  const geolocationCoordinates = useGeolocationStore(
+    (state) => state.coordinates,
+  );
+  const geolocationErrorMessage = useGeolocationStore(
+    (state) => state.errorMessage,
+  );
+  const requestGeolocation = useGeolocationStore(
+    (state) => state.requestLocation,
+  );
+  const geolocationAddress = useGeolocationStore((state) => state.address);
+  const geolocationAddressStatus = useGeolocationStore(
+    (state) => state.addressStatus,
+  );
+  const { address: profileAddress, isLoading: isProfileAddressLoading } =
+    useProfileAddress();
 
   const setQuery = useCallback((query: string) => {
     setFilters((current) => marketFiltersSchema.parse({ ...current, query }));
@@ -75,33 +118,66 @@ export function MarketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const requestLocation = useCallback(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setLocationError("Geolocalização não disponível neste navegador.");
-      return;
-    }
+    requestGeolocation();
+  }, [requestGeolocation]);
 
-    setIsLocating(true);
-    setLocationError(null);
+  const setLocationSource = useCallback(
+    (source: LocationSource) => {
+      setHasChosenSource(true);
+      setLocationSourceState(source);
+      if (source === "browser" && !geolocationCoordinates) {
+        requestGeolocation();
+      }
+    },
+    [geolocationCoordinates, requestGeolocation],
+  );
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-        setIsLocating(false);
-      },
-      () => {
-        setLocationError(
-          "Não foi possível obter sua localização. Usando localização padrão.",
-        );
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 },
-    );
-  }, []);
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: requestGeolocation is a stable zustand action reference.
   useEffect(() => {
-    requestLocation();
-  }, [requestLocation]);
+    if (hasChosenSource || isProfileAddressLoading) return;
+
+    if (profileAddress) {
+      setLocationSourceState("profile");
+    } else {
+      setLocationSourceState("browser");
+      requestGeolocation();
+    }
+  }, [isProfileAddressLoading, profileAddress, hasChosenSource]);
+
+  const { latitude, longitude } = useMemo(() => {
+    if (locationSource === "profile" && profileAddress) {
+      return {
+        latitude: profileAddress.latitude,
+        longitude: profileAddress.longitude,
+      };
+    }
+    if (geolocationCoordinates) {
+      return {
+        latitude: geolocationCoordinates.latitude,
+        longitude: geolocationCoordinates.longitude,
+      };
+    }
+    return { latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE };
+  }, [locationSource, profileAddress, geolocationCoordinates]);
+
+  const isLocating =
+    (locationSource === "browser" && geolocationStatus === "loading") ||
+    (!hasChosenSource && isProfileAddressLoading);
+
+  const locationError =
+    locationSource === "browser" && geolocationStatus === "error"
+      ? geolocationErrorMessage
+      : null;
+
+  const profileAddressLabel = profileAddress
+    ? `${profileAddress.street}, ${profileAddress.number} — ${profileAddress.city}/${profileAddress.state_code}`
+    : null;
+
+  const browserAddressLabel = geolocationAddress
+    ? formatAddressLine(geolocationAddress)
+    : null;
+
+  const isResolvingBrowserAddress = geolocationAddressStatus === "loading";
 
   return (
     <MarketContext.Provider
@@ -111,9 +187,15 @@ export function MarketProvider({ children }: { children: React.ReactNode }) {
         longitude,
         isLocating,
         locationError,
+        locationSource,
+        hasProfileAddress: Boolean(profileAddress),
+        profileAddressLabel,
+        browserAddressLabel,
+        isResolvingBrowserAddress,
         setQuery,
         setRadius,
         setCategory,
+        setLocationSource,
         requestLocation,
       }}
     >
