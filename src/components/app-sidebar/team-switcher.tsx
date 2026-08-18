@@ -1,6 +1,7 @@
 "use client";
 
 import { Building2, Check, ChevronsUpDown, Plus } from "lucide-react";
+import Link from "next/link";
 
 import {
   DropdownMenu,
@@ -39,15 +40,18 @@ export function TeamSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" asChild tooltip="Criar organização">
-            <a href="/dashboard/organizacoes/nova">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg border border-dashed border-sidebar-border text-sidebar-foreground">
-                <Plus className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Criar organização</span>
-              </div>
-            </a>
+          <SidebarMenuButton
+            size="lg"
+            asChild
+            tooltip="Criar organização"
+            className="flex items-center justify-center bg-secondary text-secondary-foreground ring-1 ring-primary/40 hover:bg-accent hover:text-accent-foreground"
+          >
+            <Link href="/dashboard/organizacoes/nova">
+              <Plus className="size-4" />
+              <span className="truncate font-medium group-data-[collapsible=icon]:hidden">
+                Criar organização
+              </span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

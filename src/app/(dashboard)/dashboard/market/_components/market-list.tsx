@@ -81,7 +81,7 @@ export function MarketList({ initialData }: MarketListProps) {
       const response = await getMarketAction({
         lat: latitude ?? DEFAULT_LATITUDE,
         lon: longitude ?? DEFAULT_LONGITUDE,
-        radius: filters.radius,
+        radius: filters.radius * 1000,
         q: filters.query || undefined,
         category: filters.category || undefined,
         cursor: pageParam,

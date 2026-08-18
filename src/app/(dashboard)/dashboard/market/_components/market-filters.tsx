@@ -12,7 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DEFAULT_RADIUS, useMarketContext } from "@/contexts/market-context";
+import {
+  DEFAULT_RADIUS,
+  type LocationSource,
+  useMarketContext,
+} from "@/contexts/market-context";
 
 const radiusOptions = [
   { value: 5, label: "5 km" },
@@ -25,9 +29,30 @@ const radiusOptions = [
 ];
 
 export function MarketFilters() {
-  const { filters, setQuery, setRadius, setCategory } = useMarketContext();
+  const {
+    filters,
+    setQuery,
+    setRadius,
+    setCategory,
+    locationSource,
+    setLocationSource,
+    hasProfileAddress,
+    profileAddressLabel,
+    browserAddressLabel,
+    isResolvingBrowserAddress,
+    isLocating,
+    latitude,
+    longitude,
+  } = useMarketContext();
   const searchId = useId();
   const [searchValue, setSearchValue] = useState(filters.query);
+
+  const browserSelectLabel =
+    isLocating && locationSource === "browser"
+      ? "Localizando..."
+      : isResolvingBrowserAddress
+        ? "Resolvendo endereço..."
+        : (browserAddressLabel ?? "Localização atual");
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border p-4">
@@ -72,6 +97,41 @@ export function MarketFilters() {
               <SelectItem value="">Todas</SelectItem>
               <SelectItem value="services">Serviços</SelectItem>
               <SelectItem value="waste">Resíduos</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <Field>
+          <FieldLabel>Localização</FieldLabel>
+          <Select
+            value={locationSource}
+            onValueChange={(value) =>
+              setLocationSource(value as LocationSource)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Localização">
+                {locationSource === "browser"
+                  ? browserSelectLabel
+                  : (profileAddressLabel ?? "Endereço cadastrado")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="browser">
+                <span className="flex flex-col items-start! gap-0.5">
+                  <span>{browserSelectLabel}</span>
+                  {!isLocating && (
+                    <span className="text-xs text-muted-foreground">
+                      {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                    </span>
+                  )}
+                </span>
+              </SelectItem>
+              <SelectItem value="profile" disabled={!hasProfileAddress}>
+                {hasProfileAddress
+                  ? (profileAddressLabel ?? "Endereço cadastrado")
+                  : "Endereço cadastrado (nenhum encontrado)"}
+              </SelectItem>
             </SelectContent>
           </Select>
         </Field>
