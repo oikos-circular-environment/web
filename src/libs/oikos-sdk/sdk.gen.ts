@@ -21,6 +21,7 @@ import {
   getV2ModerationUsersByIdResponseTransformer,
   getV2ModerationUsersByIdSessionsResponseTransformer,
   getV2ModerationUsersResponseTransformer,
+  getV2UsersMeResponseTransformer,
   patchV1CompaniesByIdStatusResponseTransformer,
   patchV1ComplaintsByIdCanceledResponseTransformer,
   patchV1ComplaintsByIdResolvedResponseTransformer,
@@ -128,6 +129,12 @@ import type {
   GetV2ModerationUsersData,
   GetV2ModerationUsersErrors,
   GetV2ModerationUsersResponses,
+  GetV2UsersMeData,
+  GetV2UsersMeErrors,
+  GetV2UsersMeResponses,
+  PatchV1AuthRefreshData,
+  PatchV1AuthRefreshErrors,
+  PatchV1AuthRefreshResponses,
   PatchV1CompaniesByIdStatusData,
   PatchV1CompaniesByIdStatusErrors,
   PatchV1CompaniesByIdStatusResponses,
@@ -149,6 +156,15 @@ import type {
   PatchV2ModerationUsersByIdRoleData,
   PatchV2ModerationUsersByIdRoleErrors,
   PatchV2ModerationUsersByIdRoleResponses,
+  PatchV2UsersMeChangePasswordData,
+  PatchV2UsersMeChangePasswordErrors,
+  PatchV2UsersMeChangePasswordResponses,
+  PostV1AuthLoginData,
+  PostV1AuthLoginErrors,
+  PostV1AuthLoginResponses,
+  PostV1AuthLogoutData,
+  PostV1AuthLogoutErrors,
+  PostV1AuthLogoutResponses,
   PostV1CompaniesByIdAvatarData,
   PostV1CompaniesByIdAvatarErrors,
   PostV1CompaniesByIdAvatarResponses,
@@ -212,6 +228,9 @@ import type {
   PostV2ModerationUsersData,
   PostV2ModerationUsersErrors,
   PostV2ModerationUsersResponses,
+  PostV2UsersRegisterData,
+  PostV2UsersRegisterErrors,
+  PostV2UsersRegisterResponses,
   PutV1CompaniesByIdAddressesData,
   PutV1CompaniesByIdAddressesErrors,
   PutV1CompaniesByIdAddressesResponses,
@@ -252,6 +271,78 @@ export type Options<
    */
   meta?: Record<string, unknown>;
 };
+
+/**
+ * Authenticate a user
+ *
+ * Authenticates a user and returns an access token.
+ */
+export const postV1AuthLogin = <ThrowOnError extends boolean = false>(
+  options: Options<PostV1AuthLoginData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    PostV1AuthLoginResponses,
+    PostV1AuthLoginErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [{ name: "X-Client-Key", type: "apiKey" }],
+    url: "/v1/auth/login",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+/**
+ * Refresh access token
+ *
+ * Issues a new access token and a rotated refresh token. Accepts the refresh token from the request body (mobile) or from the httpOnly cookie (web). Body takes precedence. The presented refresh token is revoked on rotation.
+ */
+export const patchV1AuthRefresh = <ThrowOnError extends boolean = false>(
+  options: Options<PatchV1AuthRefreshData, ThrowOnError>,
+) =>
+  (options.client ?? client).patch<
+    PatchV1AuthRefreshResponses,
+    PatchV1AuthRefreshErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [{ name: "X-Client-Key", type: "apiKey" }],
+    url: "/v1/auth/refresh",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+/**
+ * Log out the current session
+ *
+ * Revokes the presented refresh token so it can no longer be rotated. Accepts the refresh token from the request body or the httpOnly cookie. Idempotent.
+ */
+export const postV1AuthLogout = <ThrowOnError extends boolean = false>(
+  options: Options<PostV1AuthLogoutData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    PostV1AuthLogoutResponses,
+    PostV1AuthLogoutErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      { scheme: "bearer", type: "http" },
+      { name: "X-Client-Key", type: "apiKey" },
+    ],
+    url: "/v1/auth/logout",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
 /**
  * Sign up with email and password
@@ -466,6 +557,52 @@ export const postV2AuthVerifyEmail = <ThrowOnError extends boolean = false>(
   });
 
 /**
+ * Register a new user
+ *
+ * Creates a new user account with the provided information.
+ */
+export const postV2UsersRegister = <ThrowOnError extends boolean = false>(
+  options: Options<PostV2UsersRegisterData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    PostV2UsersRegisterResponses,
+    PostV2UsersRegisterErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [{ name: "X-Client-Key", type: "apiKey" }],
+    url: "/v2/users/register",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get authenticated user
+ *
+ * Returns the authenticated user's account information.
+ */
+export const getV2UsersMe = <ThrowOnError extends boolean = false>(
+  options?: Options<GetV2UsersMeData, ThrowOnError>,
+) =>
+  (options?.client ?? client).get<
+    GetV2UsersMeResponses,
+    GetV2UsersMeErrors,
+    ThrowOnError
+  >({
+    responseTransformer: getV2UsersMeResponseTransformer,
+    responseType: "json",
+    security: [
+      { scheme: "bearer", type: "http" },
+      { name: "X-Client-Key", type: "apiKey" },
+    ],
+    url: "/v2/users/me",
+    ...options,
+  });
+
+/**
  * Request account deletion
  *
  * Schedules the authenticated user's account for deletion after a grace period.
@@ -510,6 +647,34 @@ export const patchV2AccountsMeCancelDeletion = <
     ],
     url: "/v2/accounts/me/cancel-deletion",
     ...options,
+  });
+
+/**
+ * Change password
+ *
+ * Changes the authenticated user's password. Revokes every other session and returns a fresh token pair for the current device.
+ */
+export const patchV2UsersMeChangePassword = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchV2UsersMeChangePasswordData, ThrowOnError>,
+) =>
+  (options.client ?? client).patch<
+    PatchV2UsersMeChangePasswordResponses,
+    PatchV2UsersMeChangePasswordErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      { scheme: "bearer", type: "http" },
+      { name: "X-Client-Key", type: "apiKey" },
+    ],
+    url: "/v2/users/me/change-password",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 
 /**

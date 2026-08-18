@@ -5,6 +5,8 @@ import { createServerApiClient } from "@/libs/api/oikos-api";
 import {
   deleteV2ModerationUsersById,
   getV2ModerationUsers,
+  getV2ModerationUsersById,
+  getV2ModerationUsersByIdSessions,
   patchV2ModerationUsersByIdRole,
   postV2ModerationUsersByIdBan,
   postV2ModerationUsersByIdRevokeSessions,
@@ -12,6 +14,10 @@ import {
 } from "@/libs/oikos-sdk/sdk.gen";
 import type {
   DeleteV2ModerationUsersByIdData,
+  GetV2ModerationUsersByIdData,
+  GetV2ModerationUsersByIdResponse,
+  GetV2ModerationUsersByIdSessionsData,
+  GetV2ModerationUsersByIdSessionsResponse,
   GetV2ModerationUsersData,
   GetV2ModerationUsersResponse,
   PatchV2ModerationUsersByIdRoleData,
@@ -58,6 +64,38 @@ export async function getUsersAction(
     client: await buildServerClient(),
     headers: { Authorization: `Bearer ${token}` },
     query: params,
+  });
+
+  if (error || !data) return null;
+  return data;
+}
+
+export async function getUserDetailsAction(
+  id: string,
+): Promise<GetV2ModerationUsersByIdResponse | null> {
+  const token = await getSessionToken();
+  if (!token) return null;
+
+  const { data, error } = await getV2ModerationUsersById({
+    client: await buildServerClient(),
+    headers: { Authorization: `Bearer ${token}` },
+    path: { id } satisfies GetV2ModerationUsersByIdData["path"],
+  });
+
+  if (error || !data) return null;
+  return data;
+}
+
+export async function getUserSessionsAction(
+  id: string,
+): Promise<GetV2ModerationUsersByIdSessionsResponse | null> {
+  const token = await getSessionToken();
+  if (!token) return null;
+
+  const { data, error } = await getV2ModerationUsersByIdSessions({
+    client: await buildServerClient(),
+    headers: { Authorization: `Bearer ${token}` },
+    path: { id } satisfies GetV2ModerationUsersByIdSessionsData["path"],
   });
 
   if (error || !data) return null;

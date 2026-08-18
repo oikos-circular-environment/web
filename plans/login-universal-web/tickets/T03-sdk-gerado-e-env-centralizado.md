@@ -1,6 +1,6 @@
 # T03 — SDK gerado (hey-api) + `env.ts` centralizado + wrapper axios
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído (entrou junto de #52 — `env.ts` centralizado, SDK e wrapper axios em `src/libs/`)
 **Depende de:** nada tecnicamente, mas é pré-requisito de T04, T08, T09, T10
 **Módulos:** `openapi-ts.config.ts`, `src/libs/oikos-sdk/`, `src/libs/api/`, `src/lib/env.ts`,
 `src/lib/api.ts` (removido), `.env.example`

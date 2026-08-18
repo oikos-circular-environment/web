@@ -49,8 +49,19 @@ export function useUsersList(
   });
 
   const ban = useMutation({
-    mutationFn: ({ id, banReason }: { id: string; banReason?: string }) =>
-      banUserAction(id, { banReason }),
+    mutationFn: ({
+      id,
+      banReason,
+      banExpiresIn,
+    }: {
+      id: string;
+      banReason?: string;
+      banExpiresIn?: number;
+    }) =>
+      banUserAction(id, {
+        ban_reason: banReason,
+        ban_expires_in: banExpiresIn,
+      }),
     onSuccess: invalidate,
   });
 
