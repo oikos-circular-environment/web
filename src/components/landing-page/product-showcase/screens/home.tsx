@@ -7,7 +7,6 @@ import {
   RefreshCw,
   SlidersHorizontal,
   TrendingDown,
-  User,
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,6 +17,9 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+
+import { useMockIdentity } from "../mock-identity/mock-identity-context";
+import { PERSONAS } from "../mock-identity/personas";
 
 type BadgeItem = {
   icon: typeof Recycle;
@@ -196,23 +198,29 @@ function useServicesAutoplay(api: CarouselApi | undefined, itemCount: number) {
   return { activeIndex, progress, pause, resume };
 }
 
-const MOCK_USER = {
-  name: "Christian Cesar",
-  address: "Rua Belém, 16728",
-};
-
 function HomeUserCard() {
+  const { persona } = useMockIdentity();
+  const active = persona ?? PERSONAS[0];
+
   return (
     <div className="flex items-center gap-3 rounded-lg border border-white/40 bg-white/30 p-3 shadow-sm backdrop-blur-sm">
       <div className="flex flex-1 items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
-          <User className="h-5 w-5 text-primary-foreground" />
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-primary">
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="44px"
+            src={active.avatarSrc}
+          />
         </div>
         <div className="flex flex-1 flex-col">
           <p className="font-heading text-sm font-semibold uppercase leading-tight">
-            {MOCK_USER.name}
+            {active.fullName}
           </p>
-          <p className="text-xs text-gray-600">{MOCK_USER.address}</p>
+          <p className="text-xs text-gray-600">
+            {active.address.street}, {active.address.number}
+          </p>
         </div>
       </div>
       <div className="flex h-11 w-11 items-center justify-center rounded-md bg-white/60">

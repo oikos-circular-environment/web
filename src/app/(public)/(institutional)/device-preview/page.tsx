@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { DeviceFrame } from "@/components/landing-page/product-showcase/device-frame";
+import { MockIdentityProvider } from "@/components/landing-page/product-showcase/mock-identity/mock-identity-context";
+import { PersonaPicker } from "@/components/landing-page/product-showcase/mock-identity/persona-picker";
 import { screens } from "@/components/landing-page/product-showcase/screens/registry";
 
 export const metadata: Metadata = {
@@ -12,36 +14,33 @@ export const metadata: Metadata = {
 
 export default function DevicePreviewPage() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-heading text-4xl font-bold tracking-tight">
-          Device Preview
-        </h1>
-        <p className="max-w-2xl text-muted-foreground">
-          Telas do "Produto em ação" (
-          <code className="text-sm">
-            plans/landing-page/tickets/T08-produto-em-acao.md
-          </code>
-          ) isoladas do sticky scroll, uma por uma, pra comparar contra o app
-          antes de entrar na composição final.
-        </p>
-      </div>
+    <MockIdentityProvider>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-12">
+        <div className="flex flex-col gap-4">
+          <h1 className="font-heading text-4xl font-bold tracking-tight">
+            Device Preview
+          </h1>
+          <PersonaPicker />
+        </div>
 
-      <div className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 xl:grid-cols-3">
-        {screens.map((screen) => (
-          <div className="flex flex-col items-center gap-4" key={screen.id}>
-            <DeviceFrame>
-              <screen.Component />
-            </DeviceFrame>
-            <div className="text-center">
-              <h2 className="font-heading text-lg font-semibold">
-                {screen.title}
-              </h2>
-              <p className="text-sm text-muted-foreground">{screen.caption}</p>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 xl:grid-cols-3">
+          {screens.map((screen) => (
+            <div className="flex flex-col items-center gap-4" key={screen.id}>
+              <DeviceFrame>
+                <screen.Component />
+              </DeviceFrame>
+              <div className="text-center">
+                <h2 className="font-heading text-lg font-semibold">
+                  {screen.title}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {screen.caption}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+    </MockIdentityProvider>
   );
 }

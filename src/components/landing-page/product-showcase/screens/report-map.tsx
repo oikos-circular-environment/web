@@ -1,18 +1,24 @@
 "use client";
 
+import { format, formatDistanceToNowStrict } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
+  Calendar,
   ChevronDown,
   ChevronsUp,
   ChevronUp,
+  Crosshair,
   Hash,
   List,
   LocateFixed,
+  Lock,
   MapIcon,
   MapPin,
   MapPinned,
   Minus,
   Moon,
   Navigation2,
+  Paperclip,
   Plus,
   Radar,
   Radiation,
@@ -25,6 +31,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import {
   type ReactNode,
   useCallback,
@@ -44,6 +51,10 @@ import { cn } from "@/libs/utils";
 
 import { useComplaintsMap } from "../hooks/use-complaints-map";
 import { useWasteCategories } from "../hooks/use-waste-categories";
+import { useMockIdentity } from "../mock-identity/mock-identity-context";
+import { PERSONAS } from "../mock-identity/personas";
+import { useMockResolutions } from "../mock-identity/use-mock-resolutions";
+import { useMockVotes } from "../mock-identity/use-mock-votes";
 import { useSetStatusBarVariant } from "../status-bar-context";
 
 /** Rondonópolis, MT — mesma localização mock usada no filtro de Pontos de coleta. */
@@ -61,6 +72,10 @@ type MapComplaint = {
   address: string | null;
   status: ComplaintStatus;
   categories: { id: string; name: string; hazard: HazardLevel }[];
+  createdAt: Date;
+  voteCounts: { resolved: number; notResolved: number };
+  resolutionCount: number;
+  attachmentCount: number;
 };
 
 type FilterState = {
@@ -633,7 +648,7 @@ function ComplaintFilterSheet({
       <div
         className={cn(
           "absolute inset-x-0 bottom-0 z-40 flex h-[90%] flex-col rounded-t-md bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out",
-          open ? "translate-y-0" : "translate-y-full",
+          open ? "translate-y-0" : "pointer-events-none translate-y-full",
         )}
       >
         <div className="flex shrink-0 items-center justify-center pt-2.5">
@@ -771,6 +786,350 @@ function ComplaintFilterSheet({
   );
 }
 
+const DATE_LABEL_FORMAT = "d 'de' MMMM 'de' yyyy 'às' HH:mm";
+
+function ComplaintDetailSheet({
+  complaint,
+  onClose,
+}: {
+  complaint: MapComplaint | null;
+  onClose: () => void;
+}) {
+  const { persona } = useMockIdentity();
+  const complaintId = complaint?.id ?? "";
+  const { currentVote, castVote, resolvedDelta, notResolvedDelta } =
+    useMockVotes(complaintId, persona?.id ?? null);
+  const { resolutions, addResolution } = useMockResolutions(complaintId);
+  const [resolutionDraft, setResolutionDraft] = useState("");
+  const open = complaint !== null;
+
+  useEffect(() => {
+    setResolutionDraft("");
+  }, []);
+
+  const status = complaint ? STATUS_STYLES[complaint.status] : null;
+  const StatusIcon = status?.icon;
+  const canInteract = persona !== null;
+  const isResolved = complaint?.status === "RESOLVED";
+
+  const dateLabel = complaint
+    ? `${format(complaint.createdAt, DATE_LABEL_FORMAT, { locale: ptBR })} • Aberto há ${formatDistanceToNowStrict(complaint.createdAt, { locale: ptBR })}`
+    : "";
+
+  const resolvedVotes = (complaint?.voteCounts.resolved ?? 0) + resolvedDelta;
+  const notResolvedVotes =
+    (complaint?.voteCounts.notResolved ?? 0) + notResolvedDelta;
+
+  const handleSubmitResolution = () => {
+    if (!persona || !resolutionDraft.trim()) return;
+    addResolution(persona.id, resolutionDraft.trim());
+    setResolutionDraft("");
+  };
+
+  return (
+    <>
+      <button
+        aria-label="Fechar denúncia"
+        className={cn(
+          "absolute inset-0 z-30 cursor-default bg-black/30 transition-opacity duration-300",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={onClose}
+        type="button"
+      />
+
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-0 z-40 flex h-[85%] flex-col rounded-t-md bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out",
+          open ? "translate-y-0" : "pointer-events-none translate-y-full",
+        )}
+      >
+        <div className="flex shrink-0 items-center justify-center pt-2.5">
+          <span className="h-1 w-10 rounded-full bg-gray-300" />
+        </div>
+
+        <button
+          aria-label="Fechar"
+          className="absolute top-3 right-3 flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
+          onClick={onClose}
+          type="button"
+        >
+          <X className="size-4" strokeWidth={2} />
+        </button>
+
+        {complaint ? (
+          <div className="scrollbar-none flex-1 overflow-y-auto px-4 pt-6 pb-4">
+            <div className="flex flex-col gap-2">
+              <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                <Hash className="size-2.5" strokeWidth={2.5} />
+                {complaint.id.slice(0, 8)}
+              </span>
+
+              <h2 className="font-heading text-xl font-bold text-gray-950">
+                DESCARTE IRREGULAR
+              </h2>
+
+              <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto">
+                {status && StatusIcon ? (
+                  <span
+                    className={cn(
+                      "flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold",
+                      status.classes,
+                    )}
+                  >
+                    <StatusIcon className="size-2.5" strokeWidth={2.5} />
+                    {status.label}
+                  </span>
+                ) : null}
+                {complaint.categories.map((category) => {
+                  const hazard = HAZARD_STYLES[category.hazard];
+                  const HazardIcon = hazard.icon;
+                  return (
+                    <span
+                      className={cn(
+                        "flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
+                        hazard.classes,
+                      )}
+                      key={category.id}
+                    >
+                      <HazardIcon className="size-2.5" strokeWidth={3} />
+                      {category.name}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {complaint.address ? (
+                <div className="flex items-center gap-1.5">
+                  <MapPin
+                    className="size-3 shrink-0 text-gray-400"
+                    strokeWidth={2}
+                  />
+                  <span className="text-xs text-gray-500">
+                    {complaint.address}
+                  </span>
+                </div>
+              ) : null}
+
+              <div className="flex items-center gap-1.5">
+                <Calendar
+                  className="size-3 shrink-0 text-gray-400"
+                  strokeWidth={2}
+                />
+                <span className="text-xs text-gray-500">{dateLabel}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Crosshair
+                  className="size-3 shrink-0 text-gray-400"
+                  strokeWidth={2}
+                />
+                <span className="text-xs text-gray-500">
+                  {complaint.lat.toFixed(4)}, {complaint.lon.toFixed(4)}
+                </span>
+              </div>
+
+              {complaint.attachmentCount > 0 ? (
+                <div className="flex items-center gap-1.5">
+                  <Paperclip
+                    className="size-3 shrink-0 text-gray-400"
+                    strokeWidth={2}
+                  />
+                  <span className="text-xs text-gray-500">
+                    {complaint.attachmentCount}{" "}
+                    {complaint.attachmentCount === 1 ? "anexo" : "anexos"}
+                  </span>
+                </div>
+              ) : null}
+
+              {complaint.observations ? (
+                <div className="mt-1 flex flex-col gap-1">
+                  <p className="text-sm font-semibold text-gray-900">
+                    Observações
+                  </p>
+                  <p className="text-sm leading-5 text-gray-600">
+                    {complaint.observations}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="my-4 h-px bg-border" />
+
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-semibold text-gray-900">
+                Seu voto importa!
+              </p>
+              <div className="flex gap-2">
+                <button
+                  className={cn(
+                    "flex h-14 flex-1 flex-col items-center justify-center rounded-md border",
+                    isResolved || !canInteract
+                      ? "border-gray-100 bg-gray-50"
+                      : currentVote === "NOT_RESOLVED"
+                        ? "border-transparent bg-red-600"
+                        : "border-border bg-white",
+                  )}
+                  disabled={isResolved || !canInteract}
+                  onClick={() => castVote("NOT_RESOLVED")}
+                  type="button"
+                >
+                  <span
+                    className={cn(
+                      "text-sm font-semibold",
+                      isResolved || !canInteract
+                        ? "text-gray-300"
+                        : currentVote === "NOT_RESOLVED"
+                          ? "text-white"
+                          : "text-gray-700",
+                    )}
+                  >
+                    Não Resolvida
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs",
+                      isResolved || !canInteract
+                        ? "text-gray-300"
+                        : currentVote === "NOT_RESOLVED"
+                          ? "text-red-200"
+                          : "text-gray-400",
+                    )}
+                  >
+                    {notResolvedVotes} votos
+                  </span>
+                </button>
+                <button
+                  className={cn(
+                    "flex h-14 flex-1 flex-col items-center justify-center rounded-md border",
+                    isResolved || !canInteract
+                      ? "border-gray-100 bg-gray-50"
+                      : currentVote === "RESOLVED"
+                        ? "border-transparent bg-lime-800"
+                        : "border-border bg-white",
+                  )}
+                  disabled={isResolved || !canInteract}
+                  onClick={() => castVote("RESOLVED")}
+                  type="button"
+                >
+                  <span
+                    className={cn(
+                      "text-sm font-semibold",
+                      isResolved || !canInteract
+                        ? "text-gray-300"
+                        : currentVote === "RESOLVED"
+                          ? "text-white"
+                          : "text-gray-700",
+                    )}
+                  >
+                    Resolvida
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs",
+                      isResolved || !canInteract
+                        ? "text-gray-300"
+                        : currentVote === "RESOLVED"
+                          ? "text-lime-200"
+                          : "text-gray-400",
+                    )}
+                  >
+                    {resolvedVotes} votos
+                  </span>
+                </button>
+              </div>
+              {!canInteract ? (
+                <p className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <Lock className="size-3" strokeWidth={2} />
+                  Escolha uma persona no topo da página pra votar.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="my-4 h-px bg-border" />
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-gray-900">
+                  Resoluções
+                </p>
+                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                  {resolutions.length}
+                </span>
+              </div>
+
+              {resolutions.length === 0 ? (
+                <p className="py-2 text-center text-sm text-gray-400">
+                  Nenhuma resolução cadastrada para esta denúncia.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {resolutions.map((resolution) => {
+                    const author = PERSONAS.find(
+                      (p) => p.id === resolution.personaId,
+                    );
+                    return (
+                      <div
+                        className="flex gap-2.5 rounded-md border border-border p-3"
+                        key={resolution.id}
+                      >
+                        {author ? (
+                          <div className="relative size-7 shrink-0 overflow-hidden rounded-full">
+                            <Image
+                              alt=""
+                              className="object-cover"
+                              fill
+                              sizes="28px"
+                              src={author.avatarSrc}
+                            />
+                          </div>
+                        ) : null}
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-sm text-gray-700">
+                            {resolution.description}
+                          </p>
+                          <p className="text-[11px] text-gray-400">
+                            {author?.displayName ?? "Anônimo"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {canInteract && !isResolved ? (
+                <div className="mt-1 flex flex-col gap-2">
+                  <textarea
+                    className="min-h-16 rounded-md border border-border p-2 text-sm"
+                    onChange={(event) => setResolutionDraft(event.target.value)}
+                    placeholder="Descreva como essa denúncia foi resolvida..."
+                    value={resolutionDraft}
+                  />
+                  <button
+                    className="h-10 cursor-pointer rounded-md border border-border bg-white text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300"
+                    disabled={!resolutionDraft.trim()}
+                    onClick={handleSubmitResolution}
+                    type="button"
+                  >
+                    Adicionar resolução
+                  </button>
+                </div>
+              ) : !canInteract ? (
+                <p className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <Lock className="size-3" strokeWidth={2} />
+                  Escolha uma persona no topo da página pra adicionar uma
+                  resolução.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+}
+
 function ReportMapScreen() {
   const [isDarkMap, setIsDarkMap] = useState(false);
   const [showUserLocation, setShowUserLocation] = useState(true);
@@ -820,17 +1179,30 @@ function ReportMapScreen() {
             name: category.name,
             hazard: highestHazardVariant(category.hazard_levels),
           })),
+          createdAt: new Date(complaint.date),
+          voteCounts: {
+            resolved: complaint.vote_counts.resolved,
+            notResolved: complaint.vote_counts.not_resolved,
+          },
+          resolutionCount: complaint.resolution_count,
+          attachmentCount: complaint.attachments.length,
         })),
     [rawComplaints],
   );
 
   const handleSelectComplaint = useCallback((id: string) => {
-    setSelectedComplaintId((current) => {
-      const next = current === id ? null : id;
-      setIsListExpanded(next === null);
-      return next;
-    });
+    setSelectedComplaintId(id);
+    setIsListExpanded(false);
   }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedComplaintId(null);
+    setIsListExpanded(true);
+  }, []);
+
+  const selectedComplaint =
+    complaints.find((complaint) => complaint.id === selectedComplaintId) ??
+    null;
 
   const handleOpenFilterSheet = useCallback(() => {
     setDraftFilters(appliedFilters);
@@ -925,6 +1297,11 @@ function ReportMapScreen() {
         onClose={() => setIsFilterSheetOpen(false)}
         onFiltersChange={setDraftFilters}
         open={isFilterSheetOpen}
+      />
+
+      <ComplaintDetailSheet
+        complaint={selectedComplaint}
+        onClose={handleCloseDetail}
       />
     </div>
   );
