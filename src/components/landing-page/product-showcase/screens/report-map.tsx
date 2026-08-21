@@ -3,7 +3,9 @@
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
+  AlertCircle,
   Calendar,
+  Camera,
   ChevronDown,
   ChevronsUp,
   ChevronUp,
@@ -25,6 +27,7 @@ import {
   Recycle,
   Settings2,
   Shield,
+  ShieldAlert,
   ShieldCheck,
   ShieldX,
   Sun,
@@ -33,10 +36,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
+  type ChangeEvent,
   type ReactNode,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -51,8 +56,10 @@ import { cn } from "@/libs/utils";
 
 import { useComplaintsMap } from "../hooks/use-complaints-map";
 import { useWasteCategories } from "../hooks/use-waste-categories";
+import { compressImageFile } from "../mock-identity/compress-image-file";
 import { useMockIdentity } from "../mock-identity/mock-identity-context";
 import { PERSONAS } from "../mock-identity/personas";
+import { useMockComplaints } from "../mock-identity/use-mock-complaints";
 import { useMockResolutions } from "../mock-identity/use-mock-resolutions";
 import { useMockVotes } from "../mock-identity/use-mock-votes";
 import { useSetStatusBarVariant } from "../status-bar-context";
@@ -1130,6 +1137,249 @@ function ComplaintDetailSheet({
   );
 }
 
+function CreateComplaintSheet({
+  open,
+  categories,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  categories: { id: string; name: string; hazard_levels: ApiHazardLevel[] }[];
+  onClose: () => void;
+  onSubmit: (input: {
+    observations: string | null;
+    categoryIds: string[];
+    photoDataUrl: string | null;
+  }) => void;
+}) {
+  const { persona } = useMockIdentity();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [observations, setObservations] = useState("");
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) return;
+    setSelectedCategoryIds([]);
+    setObservations("");
+    setPhotoDataUrl(null);
+    setError(null);
+  }, [open]);
+
+  const toggleCategory = (id: string) => {
+    setSelectedCategoryIds((current) =>
+      current.includes(id) ? current.filter((c) => c !== id) : [...current, id],
+    );
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setIsCompressing(true);
+    try {
+      const dataUrl = await compressImageFile(file);
+      setPhotoDataUrl(dataUrl);
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!photoDataUrl) {
+      setError("Adicione ao menos uma foto.");
+      return;
+    }
+    if (selectedCategoryIds.length === 0) {
+      setError("Selecione ao menos uma categoria.");
+      return;
+    }
+    setError(null);
+    onSubmit({
+      observations: observations.trim() || null,
+      categoryIds: selectedCategoryIds,
+      photoDataUrl,
+    });
+  };
+
+  return (
+    <>
+      <button
+        aria-label="Fechar nova denúncia"
+        className={cn(
+          "absolute inset-0 z-30 cursor-default bg-black/30 transition-opacity duration-300",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={onClose}
+        type="button"
+      />
+
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-0 z-40 flex h-[90%] flex-col rounded-t-md bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out",
+          open ? "translate-y-0" : "pointer-events-none translate-y-full",
+        )}
+      >
+        <div className="flex shrink-0 items-center justify-center pt-2.5">
+          <span className="h-1 w-10 rounded-full bg-gray-300" />
+        </div>
+
+        <div className="flex shrink-0 items-center justify-between px-4 pt-2 pb-3">
+          <h2 className="font-heading text-base font-semibold text-gray-900">
+            Nova denúncia
+          </h2>
+          <button
+            aria-label="Fechar"
+            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-4" strokeWidth={2} />
+          </button>
+        </div>
+
+        {persona ? (
+          <div className="scrollbar-none flex-1 overflow-y-auto px-4 pb-4">
+            <div className="flex items-start gap-3 rounded-md bg-muted p-3">
+              <ShieldAlert
+                className="size-4 shrink-0 text-primary"
+                strokeWidth={2.2}
+              />
+              <p className="text-xs text-muted-foreground">
+                Registre denúncias de descarte irregular informando o local e
+                anexando uma foto como evidência.
+              </p>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-1">
+              <p className="text-sm font-semibold text-gray-900">Localização</p>
+              <div className="flex items-center gap-1.5">
+                <MapPin
+                  className="size-3 shrink-0 text-gray-400"
+                  strokeWidth={2}
+                />
+                <span className="text-xs text-gray-500">
+                  {persona.address.street}, {persona.address.number} —{" "}
+                  {persona.address.district}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-400">
+                Usando o endereço do seu perfil simulado.
+              </p>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-sm font-semibold text-gray-900">
+                Categorias identificadas
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <FilterChip
+                    icon={Recycle}
+                    key={category.id}
+                    label={category.name}
+                    onClick={() => toggleCategory(category.id)}
+                    selected={selectedCategoryIds.includes(category.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-sm font-semibold text-gray-900">
+                Foto do local
+              </p>
+              <input
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                type="file"
+              />
+              {photoDataUrl ? (
+                <div className="relative size-24 overflow-hidden rounded-md">
+                  <Image
+                    alt=""
+                    className="object-cover"
+                    fill
+                    sizes="96px"
+                    src={photoDataUrl}
+                  />
+                  <button
+                    aria-label="Remover foto"
+                    className="absolute top-1 right-1 flex size-5 cursor-pointer items-center justify-center rounded-full bg-black/60"
+                    onClick={() => setPhotoDataUrl(null)}
+                    type="button"
+                  >
+                    <X className="size-3 text-white" strokeWidth={2.5} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border text-sm font-medium text-gray-700 disabled:text-gray-300"
+                    disabled={isCompressing}
+                    onClick={() => fileInputRef.current?.click()}
+                    type="button"
+                  >
+                    <Camera className="size-4" strokeWidth={2} />
+                    {isCompressing ? "Processando..." : "Escolher foto"}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-sm font-semibold text-gray-900">Observações</p>
+              <textarea
+                className="min-h-20 rounded-md border border-border p-2 text-sm"
+                maxLength={500}
+                onChange={(event) => setObservations(event.target.value)}
+                placeholder="Descreva o ocorrido com detalhes relevantes..."
+                value={observations}
+              />
+            </div>
+
+            {error ? (
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-red-600">
+                <AlertCircle className="size-3" strokeWidth={2} />
+                {error}
+              </p>
+            ) : null}
+
+            <div className="mt-4 flex gap-3">
+              <button
+                className="h-11 flex-1 cursor-pointer rounded-md border border-border bg-white text-sm font-semibold text-gray-700"
+                onClick={onClose}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="h-11 flex-1 cursor-pointer rounded-md bg-lime-800 text-sm font-semibold text-white"
+                onClick={handleSubmit}
+                type="button"
+              >
+                Enviar denúncia
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 text-center">
+            <Lock className="size-5 text-gray-400" strokeWidth={2} />
+            <p className="text-sm text-gray-500">
+              Escolha uma persona no topo da página pra registrar uma denúncia.
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 function ReportMapScreen() {
   const [isDarkMap, setIsDarkMap] = useState(false);
   const [showUserLocation, setShowUserLocation] = useState(true);
@@ -1138,12 +1388,15 @@ function ReportMapScreen() {
   );
   const [isListExpanded, setIsListExpanded] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] =
     useState<FilterState>(DEFAULT_FILTERS);
   const [draftFilters, setDraftFilters] =
     useState<FilterState>(DEFAULT_FILTERS);
 
+  const { persona } = useMockIdentity();
   const { categories } = useWasteCategories();
+  const { complaints: mockComplaints, addComplaint } = useMockComplaints();
   const { complaints: rawComplaints } = useComplaintsMap({
     lat: CENTER[1],
     lon: CENTER[0],
@@ -1163,32 +1416,53 @@ function ReportMapScreen() {
     [appliedFilters.radius],
   );
 
-  const complaints = useMemo<MapComplaint[]>(
-    () =>
-      rawComplaints
-        .filter((complaint) => complaint.location !== null)
-        .map((complaint) => ({
-          id: complaint.id,
-          lat: (complaint.location as { lat: number; lon: number }).lat,
-          lon: (complaint.location as { lat: number; lon: number }).lon,
-          observations: complaint.observations,
-          address: deriveAddress(complaint.geospatial.addresses),
-          status: complaint.status,
-          categories: complaint.categories.map((category) => ({
-            id: category.id,
-            name: category.name,
-            hazard: highestHazardVariant(category.hazard_levels),
-          })),
-          createdAt: new Date(complaint.date),
-          voteCounts: {
-            resolved: complaint.vote_counts.resolved,
-            notResolved: complaint.vote_counts.not_resolved,
-          },
-          resolutionCount: complaint.resolution_count,
-          attachmentCount: complaint.attachments.length,
+  const complaints = useMemo<MapComplaint[]>(() => {
+    const fromApi = rawComplaints
+      .filter((complaint) => complaint.location !== null)
+      .map((complaint) => ({
+        id: complaint.id,
+        lat: (complaint.location as { lat: number; lon: number }).lat,
+        lon: (complaint.location as { lat: number; lon: number }).lon,
+        observations: complaint.observations,
+        address: deriveAddress(complaint.geospatial.addresses),
+        status: complaint.status,
+        categories: complaint.categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+          hazard: highestHazardVariant(category.hazard_levels),
         })),
-    [rawComplaints],
-  );
+        createdAt: new Date(complaint.date),
+        voteCounts: {
+          resolved: complaint.vote_counts.resolved,
+          notResolved: complaint.vote_counts.not_resolved,
+        },
+        resolutionCount: complaint.resolution_count,
+        attachmentCount: complaint.attachments.length,
+      }));
+
+    const fromMock = mockComplaints.map((complaint) => ({
+      id: complaint.id,
+      lat: complaint.lat,
+      lon: complaint.lon,
+      observations: complaint.observations,
+      address: complaint.address,
+      status: "OPEN" as const,
+      categories: complaint.categoryIds
+        .map((id) => categories.find((category) => category.id === id))
+        .filter((category) => category !== undefined)
+        .map((category) => ({
+          id: category.id,
+          name: category.name,
+          hazard: highestHazardVariant(category.hazard_levels),
+        })),
+      createdAt: new Date(complaint.createdAt),
+      voteCounts: { resolved: 0, notResolved: 0 },
+      resolutionCount: 0,
+      attachmentCount: complaint.photoDataUrl ? 1 : 0,
+    }));
+
+    return [...fromMock, ...fromApi];
+  }, [rawComplaints, mockComplaints, categories]);
 
   const handleSelectComplaint = useCallback((id: string) => {
     setSelectedComplaintId(id);
@@ -1219,6 +1493,29 @@ function ReportMapScreen() {
     setDraftFilters(DEFAULT_FILTERS);
     setIsFilterSheetOpen(false);
   }, []);
+
+  const handleSubmitComplaint = useCallback(
+    (input: {
+      observations: string | null;
+      categoryIds: string[];
+      photoDataUrl: string | null;
+    }) => {
+      if (!persona) return;
+      const created = addComplaint({
+        authorPersonaId: persona.id,
+        observations: input.observations,
+        categoryIds: input.categoryIds,
+        photoDataUrl: input.photoDataUrl,
+        lat: persona.address.latitude,
+        lon: persona.address.longitude,
+        address: `${persona.address.street}, ${persona.address.number} — ${persona.address.district}`,
+      });
+      setIsCreateSheetOpen(false);
+      setSelectedComplaintId(created.id);
+      setIsListExpanded(false);
+    },
+    [persona, addComplaint],
+  );
 
   return (
     <div className="relative h-full w-full">
@@ -1274,7 +1571,8 @@ function ReportMapScreen() {
         </button>
         <button
           aria-label="Nova denúncia"
-          className="flex h-12.5 w-12.5 items-center justify-center rounded-md bg-lime-800 shadow-md"
+          className="flex h-12.5 w-12.5 cursor-pointer items-center justify-center rounded-md bg-lime-800 shadow-md"
+          onClick={() => setIsCreateSheetOpen(true)}
           type="button"
         >
           <Plus className="h-6 w-6 text-white" strokeWidth={2.2} />
@@ -1302,6 +1600,13 @@ function ReportMapScreen() {
       <ComplaintDetailSheet
         complaint={selectedComplaint}
         onClose={handleCloseDetail}
+      />
+
+      <CreateComplaintSheet
+        categories={categories}
+        onClose={() => setIsCreateSheetOpen(false)}
+        onSubmit={handleSubmitComplaint}
+        open={isCreateSheetOpen}
       />
     </div>
   );
