@@ -40,6 +40,7 @@ import {
 import Image from "next/image";
 import {
   type ChangeEvent,
+  type DragEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -240,6 +241,31 @@ function ComplaintPin({ selected }: { selected?: boolean }) {
         strokeWidth={selected ? 2.5 : 1.5}
       />
     </svg>
+  );
+}
+
+/** Anexos vêm de storage externo (API) ou de fotos comprimidas em localStorage — cai pro logo se a imagem não carregar. */
+function AttachmentImage({
+  src,
+  alt,
+  sizes,
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+}) {
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <Image
+      alt={alt}
+      className={errored ? "object-contain p-3 opacity-40" : "object-cover"}
+      fill
+      onError={() => setErrored(true)}
+      sizes={sizes}
+      src={errored ? "/oikos-logo.png" : src}
+      unoptimized
+    />
   );
 }
 
@@ -884,11 +910,48 @@ function ComplaintDetailSheet({
     useMockVotes(complaintId, persona?.id ?? null);
   const { resolutions, addResolution } = useMockResolutions(complaintId);
   const [resolutionDraft, setResolutionDraft] = useState("");
+  const [resolutionPhotos, setResolutionPhotos] = useState<string[]>([]);
+  const [isCompressingResolutionPhoto, setIsCompressingResolutionPhoto] =
+    useState(false);
+  const [isDraggingResolutionPhoto, setIsDraggingResolutionPhoto] =
+    useState(false);
+  const resolutionFileInputRef = useRef<HTMLInputElement>(null);
   const open = complaint !== null;
 
   useEffect(() => {
     setResolutionDraft("");
+    setResolutionPhotos([]);
   }, []);
+
+  const addResolutionPhotoFiles = useCallback(async (files: File[]) => {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) return;
+
+    setIsCompressingResolutionPhoto(true);
+    try {
+      const dataUrls = await Promise.all(
+        imageFiles.map((file) => compressImageFile(file)),
+      );
+      setResolutionPhotos((current) => [...current, ...dataUrls]);
+    } finally {
+      setIsCompressingResolutionPhoto(false);
+    }
+  }, []);
+
+  const handleResolutionFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length > 0) addResolutionPhotoFiles(files);
+  };
+
+  const handleResolutionPhotoDrop = (event: DragEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setIsDraggingResolutionPhoto(false);
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length > 0) {
+      addResolutionPhotoFiles(files);
+    }
+  };
 
   const status = complaint ? STATUS_STYLES[complaint.status] : null;
   const StatusIcon = status?.icon;
@@ -905,8 +968,9 @@ function ComplaintDetailSheet({
 
   const handleSubmitResolution = () => {
     if (!persona || !resolutionDraft.trim()) return;
-    addResolution(persona.id, resolutionDraft.trim());
+    addResolution(persona.id, resolutionDraft.trim(), resolutionPhotos);
     setResolutionDraft("");
+    setResolutionPhotos([]);
   };
 
   return (
@@ -1027,13 +1091,10 @@ function ComplaintDetailSheet({
                         className="relative size-20 shrink-0 overflow-hidden rounded-md bg-gray-100"
                         key={attachment.id}
                       >
-                        <Image
+                        <AttachmentImage
                           alt=""
-                          className="object-cover"
-                          fill
                           sizes="80px"
                           src={attachment.url}
-                          unoptimized
                         />
                         {attachment.type === "VIDEO" ? (
                           <div className="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-black/60 p-1">
@@ -1129,13 +1190,29 @@ function ComplaintDetailSheet({
                             />
                           </div>
                         ) : null}
-                        <div className="flex flex-col gap-0.5">
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
                           <p className="text-sm text-gray-700">
                             {resolution.description}
                           </p>
                           <p className="text-[11px] text-gray-400">
                             {author?.displayName ?? "Anônimo"}
                           </p>
+                          {resolution.attachments.length > 0 ? (
+                            <div className="scrollbar-none flex gap-1.5 overflow-x-auto pt-1">
+                              {resolution.attachments.map((url) => (
+                                <div
+                                  className="relative size-14 shrink-0 overflow-hidden rounded-md bg-gray-100"
+                                  key={url}
+                                >
+                                  <AttachmentImage
+                                    alt=""
+                                    sizes="56px"
+                                    src={url}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -1151,6 +1228,73 @@ function ComplaintDetailSheet({
                     placeholder="Descreva como essa denúncia foi resolvida..."
                     value={resolutionDraft}
                   />
+
+                  <input
+                    accept="image/*"
+                    className="hidden"
+                    multiple
+                    onChange={handleResolutionFileChange}
+                    ref={resolutionFileInputRef}
+                    type="file"
+                  />
+
+                  {resolutionPhotos.length > 0 ? (
+                    <div className="scrollbar-none flex gap-2 overflow-x-auto">
+                      {resolutionPhotos.map((url, index) => (
+                        <div
+                          className="relative size-16 shrink-0 overflow-hidden rounded-md"
+                          key={url}
+                        >
+                          <Image
+                            alt=""
+                            className="object-cover"
+                            fill
+                            sizes="64px"
+                            src={url}
+                          />
+                          <button
+                            aria-label="Remover foto"
+                            className="absolute top-1 right-1 flex size-5 cursor-pointer items-center justify-center rounded-full bg-black/60"
+                            onClick={() =>
+                              setResolutionPhotos((current) =>
+                                current.filter((_, i) => i !== index),
+                              )
+                            }
+                            type="button"
+                          >
+                            <X
+                              className="size-3 text-white"
+                              strokeWidth={2.5}
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <button
+                    className={cn(
+                      "flex h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed text-xs font-medium text-gray-500 disabled:cursor-not-allowed disabled:text-gray-300",
+                      isDraggingResolutionPhoto
+                        ? "border-primary bg-muted"
+                        : "border-border",
+                    )}
+                    disabled={isCompressingResolutionPhoto}
+                    onClick={() => resolutionFileInputRef.current?.click()}
+                    onDragLeave={() => setIsDraggingResolutionPhoto(false)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setIsDraggingResolutionPhoto(true);
+                    }}
+                    onDrop={handleResolutionPhotoDrop}
+                    type="button"
+                  >
+                    <Camera className="size-4" strokeWidth={2} />
+                    {isCompressingResolutionPhoto
+                      ? "Processando..."
+                      : "Arraste fotos aqui ou clique para escolher"}
+                  </button>
+
                   <button
                     className="h-10 cursor-pointer rounded-md border border-border bg-white text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300"
                     disabled={!resolutionDraft.trim()}

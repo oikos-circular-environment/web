@@ -134,7 +134,7 @@ function ProfileScreen() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-y-auto bg-white">
+    <div className="scrollbar-none flex h-full w-full flex-col overflow-y-auto bg-white">
       <div className="relative mb-14 h-24 shrink-0 bg-primary">
         <div className="absolute top-12 left-1/2 -translate-x-1/2">
           <div className="relative size-16 overflow-hidden rounded-md shadow-lg ring-4 ring-white">

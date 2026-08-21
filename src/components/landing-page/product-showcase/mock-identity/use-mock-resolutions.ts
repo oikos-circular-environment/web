@@ -7,6 +7,7 @@ type MockResolution = {
   complaintId: string;
   personaId: string;
   description: string;
+  attachments: string[];
   createdAt: string;
 };
 
@@ -30,7 +31,7 @@ function useMockResolutions(complaintId: string) {
   }, []);
 
   const addResolution = useCallback(
-    (personaId: string, description: string) => {
+    (personaId: string, description: string, attachments: string[] = []) => {
       setAll((current) => {
         const next: MockResolution[] = [
           ...current,
@@ -39,6 +40,7 @@ function useMockResolutions(complaintId: string) {
             complaintId,
             personaId,
             description,
+            attachments,
             createdAt: new Date().toISOString(),
           },
         ];
