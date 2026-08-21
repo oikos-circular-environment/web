@@ -15,12 +15,15 @@ import {
   Navigation2,
   Plus,
   Radar,
+  Radiation,
   Recycle,
   Settings2,
   Shield,
   ShieldCheck,
+  ShieldX,
   Sun,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   type ReactNode,
@@ -39,6 +42,7 @@ import {
 } from "@/components/ui/map";
 import { cn } from "@/libs/utils";
 
+import { useComplaintsMap } from "../hooks/use-complaints-map";
 import { useWasteCategories } from "../hooks/use-waste-categories";
 import { useSetStatusBarVariant } from "../status-bar-context";
 
@@ -46,56 +50,61 @@ import { useSetStatusBarVariant } from "../status-bar-context";
 const CENTER: [number, number] = [-54.636, -16.471];
 
 type HazardLevel = "low" | "medium" | "high" | "very_high";
-type ComplaintStatus = "OPEN" | "RESOLVED";
+type ComplaintStatus = "OPEN" | "RESOLVED" | "CANCELED";
+type ApiHazardLevel = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 
-type Complaint = {
+type MapComplaint = {
   id: string;
   lat: number;
   lon: number;
-  observations: string;
-  address: string;
+  observations: string | null;
+  address: string | null;
   status: ComplaintStatus;
+  categories: { id: string; name: string; hazard: HazardLevel }[];
 };
 
-const MOCK_COMPLAINTS: Complaint[] = [
-  {
-    id: "a1b2c3d4",
-    lat: -16.4658,
-    lon: -54.6402,
-    observations: "Sacos de lixo e entulho acumulados na calçada.",
-    address: "Rua Barão do Rio Branco — Centro",
-    status: "OPEN",
-  },
-  {
-    id: "e5f6a7b8",
-    lat: -16.4775,
-    lon: -54.6291,
-    observations: "Descarte de pilhas e baterias em terreno baldio.",
-    address: "Av. Presidente Marques — Jardim Guanabara",
-    status: "OPEN",
-  },
-  {
-    id: "c9d0e1f2",
-    lat: -16.4622,
-    lon: -54.6455,
-    observations: "Queima de resíduos a céu aberto próximo à escola.",
-    address: "Rua Marechal Deodoro — Vila Aurora",
-    status: "RESOLVED",
-  },
-  {
-    id: "b3c4d5e6",
-    lat: -16.4801,
-    lon: -54.6501,
-    observations: "Ponto viciado de descarte de móveis velhos.",
-    address: "Rua Goiás — Jardim Ipanema",
-    status: "OPEN",
-  },
+type FilterState = {
+  status: "ALL" | "OPEN" | "RESOLVED";
+  categoryId: string | null;
+  categoryName: string | null;
+  hazardLevel: "all" | HazardLevel;
+  radius: number;
+};
+
+const DEFAULT_FILTERS: FilterState = {
+  status: "OPEN",
+  categoryId: null,
+  categoryName: null,
+  hazardLevel: "all",
+  radius: 2000,
+};
+
+const RADIUS_OPTIONS = [
+  { label: "2 km", value: 2000 },
+  { label: "5 km", value: 5000 },
+  { label: "10 km", value: 10000 },
+  { label: "15 km", value: 15000 },
+  { label: "20 km", value: 20000 },
+  { label: "30 km", value: 30000 },
+  { label: "40 km", value: 40000 },
 ];
 
+const STATUS_FILTER_OPTIONS = [
+  { key: "ALL", label: "Todos", icon: null },
+  { key: "OPEN", label: "Aberta", icon: Shield },
+  { key: "RESOLVED", label: "Resolvida", icon: ShieldCheck },
+] as const;
+
+const HAZARD_FILTER_OPTIONS = [
+  { key: "all", label: "Todos", icon: null },
+  { key: "low", label: "Baixa", icon: ChevronDown },
+  { key: "medium", label: "Média", icon: Minus },
+  { key: "high", label: "Alta", icon: ChevronUp },
+  { key: "very_high", label: "Muito alta", icon: ChevronsUp },
+] as const;
+
 /** Maior nível de periculosidade entre as subcategorias — mesma prioridade do `highestHazardVariant` do mobile. */
-function highestHazardVariant(
-  levels: Array<"LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH">,
-): HazardLevel {
+function highestHazardVariant(levels: ApiHazardLevel[]): HazardLevel {
   const priority: Record<string, number> = {
     LOW: 1,
     MEDIUM: 2,
@@ -107,6 +116,17 @@ function highestHazardVariant(
     levels[0] ?? "LOW",
   );
   return highest.toLowerCase() as HazardLevel;
+}
+
+function deriveAddress(addresses: {
+  street: string | null;
+  streetNumber: string | null;
+  district: string | null;
+}) {
+  const streetPart = [addresses.street, addresses.streetNumber]
+    .filter(Boolean)
+    .join(", ");
+  return [streetPart, addresses.district].filter(Boolean).join(" — ") || null;
 }
 
 /** Distância geodésica em metros (haversine) — mesmo uso do `getDistance` (geolib) no mobile. */
@@ -169,6 +189,11 @@ const STATUS_STYLES: Record<
     icon: ShieldCheck,
     label: "Resolvida",
   },
+  CANCELED: {
+    classes: "bg-red-600/15 text-red-600",
+    icon: ShieldX,
+    label: "Cancelada",
+  },
 };
 
 const MARKER_PIN_PATH =
@@ -195,12 +220,10 @@ function ComplaintPin({ selected }: { selected?: boolean }) {
 
 function ComplaintListItem({
   complaint,
-  category,
   isSelected,
   onSelect,
 }: {
-  complaint: Complaint;
-  category: { name: string; hazard: HazardLevel } | null;
+  complaint: MapComplaint;
   isSelected: boolean;
   onSelect: () => void;
 }) {
@@ -209,8 +232,6 @@ function ComplaintListItem({
   );
   const status = STATUS_STYLES[complaint.status];
   const StatusIcon = status.icon;
-  const hazard = category ? HAZARD_STYLES[category.hazard] : null;
-  const HazardIcon = hazard?.icon;
 
   return (
     <button
@@ -228,23 +249,30 @@ function ComplaintListItem({
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
           <Hash className="size-2.5" strokeWidth={2.5} />
-          {complaint.id}
+          {complaint.id.slice(0, 8)}
         </span>
 
         <p className="truncate text-sm font-bold text-gray-900">
           DESCARTE IRREGULAR
         </p>
 
-        <p className="truncate text-xs text-gray-500">
-          {complaint.observations}
-        </p>
+        {complaint.observations ? (
+          <p className="truncate text-xs text-gray-500">
+            {complaint.observations}
+          </p>
+        ) : null}
 
-        <div className="flex items-center gap-1 pt-0.5">
-          <MapPin className="size-2.5 shrink-0 text-gray-400" strokeWidth={2} />
-          <span className="truncate text-xs text-gray-400">
-            {complaint.address} • {distance}
-          </span>
-        </div>
+        {complaint.address ? (
+          <div className="flex items-center gap-1 pt-0.5">
+            <MapPin
+              className="size-2.5 shrink-0 text-gray-400"
+              strokeWidth={2}
+            />
+            <span className="truncate text-xs text-gray-400">
+              {complaint.address} • {distance}
+            </span>
+          </div>
+        ) : null}
 
         <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto pt-1">
           <span
@@ -256,17 +284,22 @@ function ComplaintListItem({
             <StatusIcon className="size-2.5" strokeWidth={2.5} />
             {status.label}
           </span>
-          {category && hazard && HazardIcon ? (
-            <span
-              className={cn(
-                "flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
-                hazard.classes,
-              )}
-            >
-              <HazardIcon className="size-2.5" strokeWidth={3} />
-              {category.name}
-            </span>
-          ) : null}
+          {complaint.categories.map((category) => {
+            const hazard = HAZARD_STYLES[category.hazard];
+            const HazardIcon = hazard.icon;
+            return (
+              <span
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
+                  hazard.classes,
+                )}
+                key={category.id}
+              >
+                <HazardIcon className="size-2.5" strokeWidth={3} />
+                {category.name}
+              </span>
+            );
+          })}
         </div>
       </div>
     </button>
@@ -276,10 +309,6 @@ function ComplaintListItem({
 const LIST_PEEK_HEIGHT = "15%";
 const LIST_EXPANDED_HEIGHT = "42%";
 
-type ComplaintWithCategory = Complaint & {
-  category: { name: string; hazard: HazardLevel } | null;
-};
-
 function ComplaintsListSheet({
   complaints,
   selectedId,
@@ -287,7 +316,7 @@ function ComplaintsListSheet({
   expanded,
   onToggleExpanded,
 }: {
-  complaints: ComplaintWithCategory[];
+  complaints: MapComplaint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   expanded: boolean;
@@ -317,15 +346,20 @@ function ComplaintsListSheet({
       </div>
 
       <div className="scrollbar-none flex-1 divide-y divide-gray-100 overflow-y-auto">
-        {complaints.map((complaint) => (
-          <ComplaintListItem
-            category={complaint.category}
-            complaint={complaint}
-            isSelected={selectedId === complaint.id}
-            key={complaint.id}
-            onSelect={() => onSelect(complaint.id)}
-          />
-        ))}
+        {complaints.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-gray-400">
+            Nenhuma denúncia encontrada nesta área.
+          </p>
+        ) : (
+          complaints.map((complaint) => (
+            <ComplaintListItem
+              complaint={complaint}
+              isSelected={selectedId === complaint.id}
+              key={complaint.id}
+              onSelect={() => onSelect(complaint.id)}
+            />
+          ))
+        )}
       </div>
     </div>
   );
@@ -360,8 +394,6 @@ function createGeoCircle(
     geometry: { type: "Polygon" as const, coordinates: [coordinates] },
   };
 }
-
-const USER_RADIUS_GEOJSON = createGeoCircle(CENTER, 2500);
 
 const CONTROL_BUTTON_TONE = {
   default: "bg-white text-gray-700",
@@ -488,24 +520,42 @@ function MapControlsColumn({
   );
 }
 
-const FILTER_CHIPS = [
-  { id: "hazard", icon: Radar, label: "Todos" },
-  { id: "category", icon: Recycle, label: "Todos" },
-  { id: "status", icon: Shield, label: "Todos" },
-  { id: "radius", icon: Radar, label: "10 km" },
-];
+function FilterRow({
+  filters,
+  onOpenSheet,
+}: {
+  filters: FilterState;
+  onOpenSheet: () => void;
+}) {
+  const hazard =
+    filters.hazardLevel === "all" ? null : HAZARD_STYLES[filters.hazardLevel];
+  const HazardIcon = hazard?.icon ?? Radiation;
 
-function FilterRow() {
+  const status =
+    filters.status === "ALL" ? null : STATUS_STYLES[filters.status];
+  const StatusIcon = status?.icon ?? Shield;
+
+  const radiusLabel =
+    RADIUS_OPTIONS.find((option) => option.value === filters.radius)?.label ??
+    `${filters.radius / 1000} km`;
+
+  const chips = [
+    { id: "hazard", icon: HazardIcon, label: hazard?.label ?? "Todos" },
+    { id: "category", icon: Recycle, label: filters.categoryName ?? "Todos" },
+    { id: "status", icon: StatusIcon, label: status?.label ?? "Todos" },
+    { id: "radius", icon: Radar, label: radiusLabel },
+  ];
+
   return (
     <div className="absolute inset-x-3 top-12 z-10 flex items-center gap-2">
       <div className="flex h-12 min-w-0 flex-1 items-center rounded-md border border-border bg-white px-3 shadow-sm">
         <div className="scrollbar-none flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-          {FILTER_CHIPS.map((chip) => (
+          {chips.map((chip) => (
             <span
-              className="flex shrink-0 items-center gap-1.5 rounded-sm bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
+              className="flex shrink-0 items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
               key={chip.id}
             >
-              <chip.icon className="h-3 w-3" strokeWidth={2} />
+              <chip.icon className="size-2.5" strokeWidth={2.5} />
               {chip.label}
             </span>
           ))}
@@ -513,12 +563,211 @@ function FilterRow() {
       </div>
       <button
         aria-label="Filtros"
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-lime-800 shadow-sm"
+        className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md bg-lime-800 shadow-sm"
+        onClick={onOpenSheet}
         type="button"
       >
         <Settings2 className="h-4.5 w-4.5 text-white" strokeWidth={2} />
       </button>
     </div>
+  );
+}
+
+function FilterChip({
+  selected,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  icon?: typeof Recycle | null;
+  label: string;
+}) {
+  return (
+    <button
+      className={cn(
+        "flex cursor-pointer items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold",
+        selected
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-white text-muted-foreground",
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      {Icon ? <Icon className="size-3.5" strokeWidth={2.5} /> : null}
+      {label}
+    </button>
+  );
+}
+
+function ComplaintFilterSheet({
+  open,
+  filters,
+  categories,
+  onFiltersChange,
+  onApply,
+  onClear,
+  onClose,
+}: {
+  open: boolean;
+  filters: FilterState;
+  categories: { id: string; name: string }[];
+  onFiltersChange: (filters: FilterState) => void;
+  onApply: () => void;
+  onClear: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <button
+        aria-label="Fechar filtros"
+        className={cn(
+          "absolute inset-0 z-30 cursor-default bg-black/30 transition-opacity duration-300",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={onClose}
+        type="button"
+      />
+
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-0 z-40 flex h-[90%] flex-col rounded-t-md bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out",
+          open ? "translate-y-0" : "translate-y-full",
+        )}
+      >
+        <div className="flex shrink-0 items-center justify-center pt-2.5">
+          <span className="h-1 w-10 rounded-full bg-gray-300" />
+        </div>
+
+        <div className="flex shrink-0 items-center justify-between px-4 pt-2 pb-3">
+          <h2 className="font-heading text-base font-semibold text-gray-900">
+            Filtros
+          </h2>
+          <button
+            aria-label="Fechar filtros"
+            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-4" strokeWidth={2} />
+          </button>
+        </div>
+
+        <div className="scrollbar-none flex-1 overflow-y-auto px-4 pb-4">
+          <p className="mb-3 text-xs font-semibold text-muted-foreground">
+            Categorias de resíduos
+          </p>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <FilterChip
+              icon={Recycle}
+              label="Todos"
+              onClick={() =>
+                onFiltersChange({
+                  ...filters,
+                  categoryId: null,
+                  categoryName: null,
+                })
+              }
+              selected={filters.categoryId === null}
+            />
+            {categories.map((category) => (
+              <FilterChip
+                icon={Recycle}
+                key={category.id}
+                label={category.name}
+                onClick={() =>
+                  onFiltersChange(
+                    filters.categoryId === category.id
+                      ? { ...filters, categoryId: null, categoryName: null }
+                      : {
+                          ...filters,
+                          categoryId: category.id,
+                          categoryName: category.name,
+                        },
+                  )
+                }
+                selected={filters.categoryId === category.id}
+              />
+            ))}
+          </div>
+
+          <div className="mb-4 h-px bg-border" />
+
+          <p className="mb-3 text-xs font-semibold text-muted-foreground">
+            Periculosidade
+          </p>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {HAZARD_FILTER_OPTIONS.map((option) => (
+              <FilterChip
+                icon={option.icon}
+                key={option.key}
+                label={option.label}
+                onClick={() =>
+                  onFiltersChange({ ...filters, hazardLevel: option.key })
+                }
+                selected={filters.hazardLevel === option.key}
+              />
+            ))}
+          </div>
+
+          <div className="mb-4 h-px bg-border" />
+
+          <p className="mb-3 text-xs font-semibold text-muted-foreground">
+            Status
+          </p>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {STATUS_FILTER_OPTIONS.map((option) => (
+              <FilterChip
+                icon={option.icon}
+                key={option.key}
+                label={option.label}
+                onClick={() =>
+                  onFiltersChange({ ...filters, status: option.key })
+                }
+                selected={filters.status === option.key}
+              />
+            ))}
+          </div>
+
+          <div className="mb-4 h-px bg-border" />
+
+          <p className="mb-3 text-xs font-semibold text-muted-foreground">
+            Raio de busca
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {RADIUS_OPTIONS.map((option) => (
+              <FilterChip
+                icon={Radar}
+                key={option.value}
+                label={option.label}
+                onClick={() =>
+                  onFiltersChange({ ...filters, radius: option.value })
+                }
+                selected={filters.radius === option.value}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 gap-3 border-t border-border p-4">
+          <button
+            className="h-11 flex-1 cursor-pointer rounded-md border border-border bg-white text-sm font-semibold text-foreground"
+            onClick={onClear}
+            type="button"
+          >
+            Limpar
+          </button>
+          <button
+            className="h-11 flex-1 cursor-pointer rounded-md bg-lime-800 text-sm font-semibold text-white"
+            onClick={onApply}
+            type="button"
+          >
+            Aplicar
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -529,27 +778,50 @@ function ReportMapScreen() {
     null,
   );
   const [isListExpanded, setIsListExpanded] = useState(false);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [appliedFilters, setAppliedFilters] =
+    useState<FilterState>(DEFAULT_FILTERS);
+  const [draftFilters, setDraftFilters] =
+    useState<FilterState>(DEFAULT_FILTERS);
+
   const { categories } = useWasteCategories();
+  const { complaints: rawComplaints } = useComplaintsMap({
+    lat: CENTER[1],
+    lon: CENTER[0],
+    radius: appliedFilters.radius,
+    status: appliedFilters.status,
+    wasteCategoryId: appliedFilters.categoryId ?? "ALL",
+    hazardLevel:
+      appliedFilters.hazardLevel === "all"
+        ? "ALL"
+        : (appliedFilters.hazardLevel.toUpperCase() as ApiHazardLevel),
+  });
 
-  useSetStatusBarVariant(isDarkMap ? "light" : "dark");
+  useSetStatusBarVariant(isDarkMap || isFilterSheetOpen ? "light" : "dark");
 
-  const complaintsWithCategories = useMemo<ComplaintWithCategory[]>(
+  const userRadiusGeoJson = useMemo(
+    () => createGeoCircle(CENTER, appliedFilters.radius),
+    [appliedFilters.radius],
+  );
+
+  const complaints = useMemo<MapComplaint[]>(
     () =>
-      MOCK_COMPLAINTS.map((complaint, index) => {
-        const category = categories.length
-          ? categories[index % categories.length]
-          : null;
-        return {
-          ...complaint,
-          category: category
-            ? {
-                name: category.name,
-                hazard: highestHazardVariant(category.hazard_levels),
-              }
-            : null,
-        };
-      }),
-    [categories],
+      rawComplaints
+        .filter((complaint) => complaint.location !== null)
+        .map((complaint) => ({
+          id: complaint.id,
+          lat: (complaint.location as { lat: number; lon: number }).lat,
+          lon: (complaint.location as { lat: number; lon: number }).lon,
+          observations: complaint.observations,
+          address: deriveAddress(complaint.geospatial.addresses),
+          status: complaint.status,
+          categories: complaint.categories.map((category) => ({
+            id: category.id,
+            name: category.name,
+            hazard: highestHazardVariant(category.hazard_levels),
+          })),
+        })),
+    [rawComplaints],
   );
 
   const handleSelectComplaint = useCallback((id: string) => {
@@ -560,11 +832,27 @@ function ReportMapScreen() {
     });
   }, []);
 
+  const handleOpenFilterSheet = useCallback(() => {
+    setDraftFilters(appliedFilters);
+    setIsFilterSheetOpen(true);
+  }, [appliedFilters]);
+
+  const handleApplyFilters = useCallback(() => {
+    setAppliedFilters(draftFilters);
+    setIsFilterSheetOpen(false);
+  }, [draftFilters]);
+
+  const handleClearFilters = useCallback(() => {
+    setAppliedFilters(DEFAULT_FILTERS);
+    setDraftFilters(DEFAULT_FILTERS);
+    setIsFilterSheetOpen(false);
+  }, []);
+
   return (
     <div className="relative h-full w-full">
       <MapcnMap center={CENTER} theme={isDarkMap ? "dark" : "light"} zoom={13}>
         <MapGeoJSON
-          data={USER_RADIUS_GEOJSON}
+          data={userRadiusGeoJson}
           fillPaint={{ "fill-color": "#84cc16", "fill-opacity": 0.12 }}
           linePaint={{ "line-color": "#84cc16", "line-width": 2 }}
         />
@@ -577,7 +865,7 @@ function ReportMapScreen() {
           </MapMarker>
         ) : null}
 
-        {MOCK_COMPLAINTS.map((complaint) => (
+        {complaints.map((complaint) => (
           <MapMarker
             anchor="bottom"
             key={complaint.id}
@@ -599,7 +887,7 @@ function ReportMapScreen() {
         />
       </MapcnMap>
 
-      <FilterRow />
+      <FilterRow filters={appliedFilters} onOpenSheet={handleOpenFilterSheet} />
 
       <div
         className="absolute right-3 z-10 flex items-center gap-2"
@@ -622,11 +910,21 @@ function ReportMapScreen() {
       </div>
 
       <ComplaintsListSheet
-        complaints={complaintsWithCategories}
+        complaints={complaints}
         expanded={isListExpanded}
         onSelect={handleSelectComplaint}
         onToggleExpanded={() => setIsListExpanded((v) => !v)}
         selectedId={selectedComplaintId}
+      />
+
+      <ComplaintFilterSheet
+        categories={categories}
+        filters={draftFilters}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+        onClose={() => setIsFilterSheetOpen(false)}
+        onFiltersChange={setDraftFilters}
+        open={isFilterSheetOpen}
       />
     </div>
   );
