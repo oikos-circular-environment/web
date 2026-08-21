@@ -21,6 +21,7 @@ import {
   Moon,
   Navigation2,
   Paperclip,
+  Play,
   Plus,
   Radar,
   Radiation,
@@ -31,6 +32,8 @@ import {
   ShieldCheck,
   ShieldX,
   Sun,
+  ThumbsDown,
+  ThumbsUp,
   Trash2,
   X,
 } from "lucide-react";
@@ -82,7 +85,7 @@ type MapComplaint = {
   createdAt: Date;
   voteCounts: { resolved: number; notResolved: number };
   resolutionCount: number;
-  attachmentCount: number;
+  attachments: { id: string; url: string; type: "PHOTO" | "VIDEO" }[];
 };
 
 type FilterState = {
@@ -240,6 +243,81 @@ function ComplaintPin({ selected }: { selected?: boolean }) {
   );
 }
 
+const VOTE_BUTTON_STYLES = {
+  NOT_RESOLVED: {
+    label: "Não Resolvida",
+    icon: ThumbsDown,
+    activeClasses: "border-transparent bg-red-600",
+    activeTextClasses: "text-white",
+    activeCountClasses: "text-red-200",
+  },
+  RESOLVED: {
+    label: "Resolvida",
+    icon: ThumbsUp,
+    activeClasses: "border-transparent bg-lime-800",
+    activeTextClasses: "text-white",
+    activeCountClasses: "text-lime-200",
+  },
+} as const;
+
+function ComplaintVoteButton({
+  type,
+  count,
+  active,
+  disabled,
+  onClick,
+}: {
+  type: "RESOLVED" | "NOT_RESOLVED";
+  count: number;
+  active: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const config = VOTE_BUTTON_STYLES[type];
+  const Icon = config.icon;
+
+  const textClasses = disabled
+    ? "text-gray-300"
+    : active
+      ? config.activeTextClasses
+      : "text-gray-700";
+  const countClasses = disabled
+    ? "text-gray-300"
+    : active
+      ? config.activeCountClasses
+      : "text-gray-400";
+  const iconClasses = disabled
+    ? "text-gray-300"
+    : active
+      ? config.activeTextClasses
+      : "text-gray-400";
+
+  return (
+    <button
+      className={cn(
+        "flex h-14 flex-1 cursor-pointer items-center gap-3 rounded-md border px-4 disabled:cursor-not-allowed",
+        type === "RESOLVED" && "flex-row-reverse",
+        disabled
+          ? "border-gray-100 bg-gray-50"
+          : active
+            ? config.activeClasses
+            : "border-border bg-white",
+      )}
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
+      <Icon className={cn("size-4 shrink-0", iconClasses)} strokeWidth={2} />
+      <span className="flex flex-1 flex-col items-center">
+        <span className={cn("text-xs font-semibold", textClasses)}>
+          {config.label}
+        </span>
+        <span className={cn("text-xs", countClasses)}>{count} votos</span>
+      </span>
+    </button>
+  );
+}
+
 function ComplaintListItem({
   complaint,
   isSelected,
@@ -269,14 +347,15 @@ function ComplaintListItem({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-          <Hash className="size-2.5" strokeWidth={2.5} />
-          {complaint.id.slice(0, 8)}
-        </span>
-
-        <p className="truncate text-sm font-bold text-gray-900">
-          DESCARTE IRREGULAR
-        </p>
+        <div className="flex flex-1 justify-between items-center">
+          <p className="truncate text-sm font-bold text-gray-900">
+            DESCARTE IRREGULAR
+          </p>
+          <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            <Hash className="size-2.5" strokeWidth={2.5} />
+            {complaint.id.slice(0, 8)}
+          </span>
+        </div>
 
         {complaint.observations ? (
           <p className="truncate text-xs text-gray-500">
@@ -658,22 +737,19 @@ function ComplaintFilterSheet({
           open ? "translate-y-0" : "pointer-events-none translate-y-full",
         )}
       >
-        <div className="flex shrink-0 items-center justify-center pt-2.5">
+        <button
+          aria-label="Fechar filtros"
+          className="flex shrink-0 cursor-pointer items-center justify-center py-2.5"
+          onClick={onClose}
+          type="button"
+        >
           <span className="h-1 w-10 rounded-full bg-gray-300" />
-        </div>
+        </button>
 
-        <div className="flex shrink-0 items-center justify-between px-4 pt-2 pb-3">
+        <div className="flex shrink-0 items-center px-4 pt-2 pb-3">
           <h2 className="font-heading text-base font-semibold text-gray-900">
             Filtros
           </h2>
-          <button
-            aria-label="Fechar filtros"
-            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
-            onClick={onClose}
-            type="button"
-          >
-            <X className="size-4" strokeWidth={2} />
-          </button>
         </div>
 
         <div className="scrollbar-none flex-1 overflow-y-auto px-4 pb-4">
@@ -851,30 +927,27 @@ function ComplaintDetailSheet({
           open ? "translate-y-0" : "pointer-events-none translate-y-full",
         )}
       >
-        <div className="flex shrink-0 items-center justify-center pt-2.5">
-          <span className="h-1 w-10 rounded-full bg-gray-300" />
-        </div>
-
         <button
-          aria-label="Fechar"
-          className="absolute top-3 right-3 flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
+          aria-label="Fechar denúncia"
+          className="flex shrink-0 cursor-pointer items-center justify-center py-2.5"
           onClick={onClose}
           type="button"
         >
-          <X className="size-4" strokeWidth={2} />
+          <span className="h-1 w-10 rounded-full bg-gray-300" />
         </button>
 
         {complaint ? (
           <div className="scrollbar-none flex-1 overflow-y-auto px-4 pt-6 pb-4">
             <div className="flex flex-col gap-2">
-              <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                <Hash className="size-2.5" strokeWidth={2.5} />
-                {complaint.id.slice(0, 8)}
-              </span>
-
-              <h2 className="font-heading text-xl font-bold text-gray-950">
-                DESCARTE IRREGULAR
-              </h2>
+              <div className="flex flex-1 justify-between items-center">
+                <p className="truncate text-xl font-bold text-gray-900">
+                  DESCARTE IRREGULAR
+                </p>
+                <span className="inline-flex w-fit items-center gap-1 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                  <Hash className="size-2.5" strokeWidth={2.5} />
+                  {complaint.id.slice(0, 8)}
+                </span>
+              </div>
 
               <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto">
                 {status && StatusIcon ? (
@@ -936,16 +1009,43 @@ function ComplaintDetailSheet({
                 </span>
               </div>
 
-              {complaint.attachmentCount > 0 ? (
-                <div className="flex items-center gap-1.5">
-                  <Paperclip
-                    className="size-3 shrink-0 text-gray-400"
-                    strokeWidth={2}
-                  />
-                  <span className="text-xs text-gray-500">
-                    {complaint.attachmentCount}{" "}
-                    {complaint.attachmentCount === 1 ? "anexo" : "anexos"}
-                  </span>
+              {complaint.attachments.length > 0 ? (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Paperclip
+                      className="size-3 shrink-0 text-gray-400"
+                      strokeWidth={2}
+                    />
+                    <span className="text-xs text-gray-500">
+                      {complaint.attachments.length}{" "}
+                      {complaint.attachments.length === 1 ? "anexo" : "anexos"}
+                    </span>
+                  </div>
+                  <div className="scrollbar-none flex gap-2 overflow-x-auto">
+                    {complaint.attachments.map((attachment) => (
+                      <div
+                        className="relative size-20 shrink-0 overflow-hidden rounded-md bg-gray-100"
+                        key={attachment.id}
+                      >
+                        <Image
+                          alt=""
+                          className="object-cover"
+                          fill
+                          sizes="80px"
+                          src={attachment.url}
+                          unoptimized
+                        />
+                        {attachment.type === "VIDEO" ? (
+                          <div className="absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-black/60 p-1">
+                            <Play
+                              className="size-2.5 fill-white text-white"
+                              strokeWidth={0}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
@@ -968,82 +1068,20 @@ function ComplaintDetailSheet({
                 Seu voto importa!
               </p>
               <div className="flex gap-2">
-                <button
-                  className={cn(
-                    "flex h-14 flex-1 flex-col items-center justify-center rounded-md border",
-                    isResolved || !canInteract
-                      ? "border-gray-100 bg-gray-50"
-                      : currentVote === "NOT_RESOLVED"
-                        ? "border-transparent bg-red-600"
-                        : "border-border bg-white",
-                  )}
+                <ComplaintVoteButton
+                  active={currentVote === "NOT_RESOLVED"}
+                  count={notResolvedVotes}
                   disabled={isResolved || !canInteract}
                   onClick={() => castVote("NOT_RESOLVED")}
-                  type="button"
-                >
-                  <span
-                    className={cn(
-                      "text-sm font-semibold",
-                      isResolved || !canInteract
-                        ? "text-gray-300"
-                        : currentVote === "NOT_RESOLVED"
-                          ? "text-white"
-                          : "text-gray-700",
-                    )}
-                  >
-                    Não Resolvida
-                  </span>
-                  <span
-                    className={cn(
-                      "text-xs",
-                      isResolved || !canInteract
-                        ? "text-gray-300"
-                        : currentVote === "NOT_RESOLVED"
-                          ? "text-red-200"
-                          : "text-gray-400",
-                    )}
-                  >
-                    {notResolvedVotes} votos
-                  </span>
-                </button>
-                <button
-                  className={cn(
-                    "flex h-14 flex-1 flex-col items-center justify-center rounded-md border",
-                    isResolved || !canInteract
-                      ? "border-gray-100 bg-gray-50"
-                      : currentVote === "RESOLVED"
-                        ? "border-transparent bg-lime-800"
-                        : "border-border bg-white",
-                  )}
+                  type="NOT_RESOLVED"
+                />
+                <ComplaintVoteButton
+                  active={currentVote === "RESOLVED"}
+                  count={resolvedVotes}
                   disabled={isResolved || !canInteract}
                   onClick={() => castVote("RESOLVED")}
-                  type="button"
-                >
-                  <span
-                    className={cn(
-                      "text-sm font-semibold",
-                      isResolved || !canInteract
-                        ? "text-gray-300"
-                        : currentVote === "RESOLVED"
-                          ? "text-white"
-                          : "text-gray-700",
-                    )}
-                  >
-                    Resolvida
-                  </span>
-                  <span
-                    className={cn(
-                      "text-xs",
-                      isResolved || !canInteract
-                        ? "text-gray-300"
-                        : currentVote === "RESOLVED"
-                          ? "text-lime-200"
-                          : "text-gray-400",
-                    )}
-                  >
-                    {resolvedVotes} votos
-                  </span>
-                </button>
+                  type="RESOLVED"
+                />
               </div>
               {!canInteract ? (
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
@@ -1223,22 +1261,19 @@ function CreateComplaintSheet({
           open ? "translate-y-0" : "pointer-events-none translate-y-full",
         )}
       >
-        <div className="flex shrink-0 items-center justify-center pt-2.5">
+        <button
+          aria-label="Fechar nova denúncia"
+          className="flex shrink-0 cursor-pointer items-center justify-center py-2.5"
+          onClick={onClose}
+          type="button"
+        >
           <span className="h-1 w-10 rounded-full bg-gray-300" />
-        </div>
+        </button>
 
-        <div className="flex shrink-0 items-center justify-between px-4 pt-2 pb-3">
+        <div className="flex shrink-0 items-center px-4 pt-2 pb-3">
           <h2 className="font-heading text-base font-semibold text-gray-900">
             Nova denúncia
           </h2>
-          <button
-            aria-label="Fechar"
-            className="flex size-7 cursor-pointer items-center justify-center rounded-md text-gray-400"
-            onClick={onClose}
-            type="button"
-          >
-            <X className="size-4" strokeWidth={2} />
-          </button>
         </div>
 
         {persona ? (
@@ -1437,7 +1472,11 @@ function ReportMapScreen() {
           notResolved: complaint.vote_counts.not_resolved,
         },
         resolutionCount: complaint.resolution_count,
-        attachmentCount: complaint.attachments.length,
+        attachments: complaint.attachments.map((attachment) => ({
+          id: attachment.id,
+          url: attachment.url,
+          type: attachment.type,
+        })),
       }));
 
     const fromMock = mockComplaints.map((complaint) => ({
@@ -1458,7 +1497,15 @@ function ReportMapScreen() {
       createdAt: new Date(complaint.createdAt),
       voteCounts: { resolved: 0, notResolved: 0 },
       resolutionCount: 0,
-      attachmentCount: complaint.photoDataUrl ? 1 : 0,
+      attachments: complaint.photoDataUrl
+        ? [
+            {
+              id: `${complaint.id}-photo`,
+              url: complaint.photoDataUrl,
+              type: "PHOTO" as const,
+            },
+          ]
+        : [],
     }));
 
     return [...fromMock, ...fromApi];
