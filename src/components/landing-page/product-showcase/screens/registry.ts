@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import { HomeScreen } from "./home";
+import { HomeScreen, HomeScreenAuthenticated } from "./home";
 
 type ProductScreen = {
   id: string;
@@ -15,6 +15,12 @@ const screens: ProductScreen[] = [
     title: "Home",
     caption: "Tudo o que você precisa, num só lugar.",
     Component: HomeScreen,
+  },
+  {
+    id: "home-authenticated",
+    title: "Home (logado)",
+    caption: "Mesmo componente, estado autenticado.",
+    Component: HomeScreenAuthenticated,
   },
 ];
 

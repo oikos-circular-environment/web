@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowUpRight, Recycle, RefreshCw, TrendingDown } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Recycle,
+  RefreshCw,
+  SlidersHorizontal,
+  TrendingDown,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -188,9 +196,85 @@ function useServicesAutoplay(api: CarouselApi | undefined, itemCount: number) {
   return { activeIndex, progress, pause, resume };
 }
 
+const MOCK_USER = {
+  name: "Christian Cesar",
+  address: "Rua Belém, 16728",
+};
+
+function HomeUserCard() {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-white/40 bg-white/30 p-3 shadow-sm backdrop-blur-sm">
+      <div className="flex flex-1 items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary">
+          <User className="h-5 w-5 text-primary-foreground" />
+        </div>
+        <div className="flex flex-1 flex-col">
+          <p className="font-heading text-sm font-semibold uppercase leading-tight">
+            {MOCK_USER.name}
+          </p>
+          <p className="text-xs text-gray-600">{MOCK_USER.address}</p>
+        </div>
+      </div>
+      <div className="flex h-11 w-11 items-center justify-center rounded-md bg-white/60">
+        <SlidersHorizontal className="h-4 w-4 text-gray-700" />
+      </div>
+    </div>
+  );
+}
+
+function SessionCta() {
+  return (
+    <div className="relative flex h-12 items-center overflow-hidden rounded-4xl border border-white/40 bg-primary/15 shadow-sm backdrop-blur-sm">
+      <div className="absolute left-1.5 flex p-2 items-center justify-center rounded-full bg-white shadow-sm">
+        <ArrowRight className="h-5 w-5 text-primary" />
+      </div>
+      <p className="flex-1 text-center text-sm font-bold text-gray-800">
+        Iniciar sessão
+      </p>
+    </div>
+  );
+}
+
+function HomeHero({ isAuthenticated }: { isAuthenticated: boolean }) {
+  return (
+    <div className="relative overflow-hidden bg-linear-to-b from-[#f2e6ce] to-white px-5 pt-12 pb-4">
+      {isAuthenticated ? (
+        <div className="pb-5">
+          <HomeUserCard />
+        </div>
+      ) : null}
+
+      <div className="relative pb-8">
+        <p className="-mx-5 px-5 font-heading text-[120px] leading-[0.8] font-bold tracking-tight text-white uppercase [text-shadow:0_1px_3px_rgba(0,0,0,0.2)]">
+          OIKOS
+        </p>
+
+        <Image
+          alt=""
+          className="pointer-events-none absolute -right-10 bottom-0 object-contain"
+          height={210}
+          src="/device-preview/home/bonsai.webp"
+          width={204}
+        />
+
+        <p className="mt-3 w-48 text-sm leading-4 text-gray-600">
+          Denuncie ocorrências ambientais com foto e localização, vote com a
+          comunidade e encontre empresas de reciclagem perto de você.
+        </p>
+
+        <div className="absolute -right-2 bottom-6">
+          <FloatingGlassBadge />
+        </div>
+      </div>
+
+      {isAuthenticated ? null : <SessionCta />}
+    </div>
+  );
+}
+
 function ServiceCard({ service }: { service: Service }) {
   return (
-    <div className="relative aspect-[9/16] w-full overflow-hidden rounded-lg">
+    <div className="relative aspect-9/16 w-full overflow-hidden rounded-lg">
       <Image
         alt=""
         className="object-cover"
@@ -240,7 +324,11 @@ function ServiceCard({ service }: { service: Service }) {
   );
 }
 
-function HomeScreen() {
+function HomeScreen({
+  isAuthenticated = false,
+}: {
+  isAuthenticated?: boolean;
+}) {
   const [api, setApi] = useState<CarouselApi>();
   const { activeIndex, progress, pause, resume } = useServicesAutoplay(
     api,
@@ -256,37 +344,7 @@ function HomeScreen() {
 
   return (
     <div className="flex min-h-full flex-col bg-white">
-      <div className="relative overflow-hidden bg-linear-to-b from-[#f2e6ce] to-white px-5 pt-8 pb-4">
-        <div className="relative pb-8">
-          <Image
-            alt=""
-            className="pointer-events-none absolute top-1 -right-8 object-contain"
-            height={200}
-            src="/device-preview/home/nature.webp"
-            width={200}
-          />
-
-          <p className="font-heading text-[56px] leading-[0.85] font-bold tracking-wide text-white uppercase [text-shadow:0_1px_3px_rgba(0,0,0,0.2)]">
-            OIKOS
-          </p>
-
-          <p className="mt-3 w-36 text-xs leading-4 text-gray-600">
-            Denuncie ocorrências ambientais com foto e localização, vote com a
-            comunidade e encontre empresas de reciclagem perto de você.
-          </p>
-
-          <div className="absolute right-1 bottom-0">
-            <FloatingGlassBadge />
-          </div>
-        </div>
-
-        <button
-          className="w-full rounded-full border border-white/50 bg-white/40 px-5 py-3 text-center text-sm font-semibold text-gray-800 backdrop-blur-sm"
-          type="button"
-        >
-          Entrar
-        </button>
-      </div>
+      <HomeHero isAuthenticated={isAuthenticated} />
 
       <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
         <h2 className="font-heading text-lg font-semibold">Serviços</h2>
@@ -300,7 +358,7 @@ function HomeScreen() {
 
         <div onPointerDown={pause} onPointerLeave={resume} onPointerUp={resume}>
           <Carousel opts={{ loop: true }} setApi={setApi}>
-            <CarouselContent className="-ml-0">
+            <CarouselContent className="ml-0">
               {SERVICES.map((service) => (
                 <CarouselItem className="basis-full pl-0" key={service.id}>
                   <ServiceCard service={service} />
@@ -314,4 +372,8 @@ function HomeScreen() {
   );
 }
 
-export { HomeScreen };
+function HomeScreenAuthenticated() {
+  return <HomeScreen isAuthenticated />;
+}
+
+export { HomeScreen, HomeScreenAuthenticated };
