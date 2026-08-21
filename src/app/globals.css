@@ -60,6 +60,16 @@
       transform: none;
     }
   }
+  --animate-float: float 2.8s ease-in-out infinite;
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(-6px);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
 }
 
 :root {

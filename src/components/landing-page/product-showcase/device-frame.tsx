@@ -3,6 +3,8 @@
 import type * as React from "react";
 
 import { cn } from "@/libs/utils";
+import { StatusBar } from "./status-bar";
+import { DeviceStatusBarProvider } from "./status-bar-context";
 
 const FRAME_WIDTH = 360;
 const FRAME_HEIGHT = 760;
@@ -42,7 +44,12 @@ function DeviceFrame({
         className="absolute inset-[10px] overflow-hidden rounded-[44px] bg-background"
         style={{ width: FRAME_WIDTH - 20, height: FRAME_HEIGHT - 20 }}
       >
-        {children}
+        <DeviceStatusBarProvider>
+          <StatusBar />
+          <div className="scrollbar-none h-full w-full touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain">
+            {children}
+          </div>
+        </DeviceStatusBarProvider>
       </div>
 
       <div

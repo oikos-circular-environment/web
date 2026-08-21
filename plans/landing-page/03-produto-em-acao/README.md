@@ -1,5 +1,12 @@
 # Seção 3 — Produto em ação
 
+> A sequência de 5 telas (login/cadastro/mapa/cadastro de empresa/denúncia) e a técnica de
+> "telefone 3D com `<Html>`" descritas abaixo são o rascunho de pesquisa original — **superadas**
+> pela decisão em [`tickets/T08-produto-em-acao.md`](../tickets/T08-produto-em-acao.md): telas em
+> DOM/Tailwind (não telefone 3D), sequência revisada pra 3 beats (Home → Pontos de coleta →
+> Denúncia), login/cadastro/empresa removidos. Mantido aqui só como histórico da pesquisa de
+> referência (Apple, etc.), que ainda vale.
+
 ## Pesquisa de referência
 
 ### Apple — iphone-17-pro/
