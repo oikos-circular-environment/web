@@ -6,10 +6,15 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 import { PERSONAS, type Persona } from "./personas";
+import {
+  type PersonaOverride,
+  usePersonaOverrides,
+} from "./use-persona-overrides";
 
 const STORAGE_KEY = "oikos-preview-persona";
 
@@ -17,11 +22,21 @@ type MockIdentityContextValue = {
   persona: Persona | null;
   personaId: string | null;
   setPersonaId: (id: string | null) => void;
+  updatePersona: (patch: PersonaOverride) => void;
 };
 
 const MockIdentityContext = createContext<MockIdentityContextValue | null>(
   null,
 );
+
+function applyOverride(persona: Persona, override?: PersonaOverride): Persona {
+  if (!override) return persona;
+  return {
+    ...persona,
+    ...override,
+    address: { ...persona.address, ...override.address },
+  };
+}
 
 /**
  * Login simulado só para o device-preview: não autentica nada de verdade na
@@ -29,6 +44,7 @@ const MockIdentityContext = createContext<MockIdentityContextValue | null>(
  */
 function MockIdentityProvider({ children }: { children: ReactNode }) {
   const [personaId, setPersonaIdState] = useState<string | null>(null);
+  const { overrides, setOverride } = usePersonaOverrides();
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -46,10 +62,26 @@ function MockIdentityProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const persona = PERSONAS.find((p) => p.id === personaId) ?? null;
+  const updatePersona = useCallback(
+    (patch: PersonaOverride) => {
+      if (!personaId) return;
+      setOverride(personaId, patch);
+    },
+    [personaId, setOverride],
+  );
+
+  const basePersona = PERSONAS.find((p) => p.id === personaId) ?? null;
+  const persona = basePersona
+    ? applyOverride(basePersona, overrides[basePersona.id])
+    : null;
+
+  const value = useMemo(
+    () => ({ persona, personaId, setPersonaId, updatePersona }),
+    [persona, personaId, setPersonaId, updatePersona],
+  );
 
   return (
-    <MockIdentityContext.Provider value={{ persona, personaId, setPersonaId }}>
+    <MockIdentityContext.Provider value={value}>
       {children}
     </MockIdentityContext.Provider>
   );
