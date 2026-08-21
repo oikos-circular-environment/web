@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { HomeScreen, HomeScreenAuthenticated } from "./home";
+import { ReportMapScreen } from "./report-map";
 
 type ProductScreen = {
   id: string;
@@ -21,6 +22,12 @@ const screens: ProductScreen[] = [
     title: "Home (logado)",
     caption: "Mesmo componente, estado autenticado.",
     Component: HomeScreenAuthenticated,
+  },
+  {
+    id: "report-map",
+    title: "Denúncia — mapa",
+    caption: "Mapa interativo, pontos ao redor de você.",
+    Component: ReportMapScreen,
   },
 ];
 
