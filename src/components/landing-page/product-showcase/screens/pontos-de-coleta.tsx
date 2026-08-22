@@ -1187,7 +1187,7 @@ function MarketListScreen() {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-white">
-      <div className="scrollbar-none h-full overflow-y-auto px-4 pb-8 pt-3">
+      <div className="scrollbar-none h-full overflow-y-auto px-4 pb-8 pt-12">
         <div className="flex items-center gap-2 rounded-md border border-border bg-white p-2 shadow-sm">
           <div className="flex size-7 items-center justify-center rounded-md bg-primary">
             <MapPin
