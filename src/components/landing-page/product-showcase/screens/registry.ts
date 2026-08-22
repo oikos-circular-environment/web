@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { CompanyRegistrationScreen } from "./company-registration";
 import { HomeScreen, HomeScreenAuthenticated } from "./home";
 import { MarketListScreen } from "./pontos-de-coleta";
 import { ProfileScreen } from "./profile";
@@ -42,6 +43,12 @@ const screens: ProductScreen[] = [
     title: "Perfil",
     caption: "Endereço muda de acordo com a persona escolhida.",
     Component: ProfileScreen,
+  },
+  {
+    id: "company-registration",
+    title: "Cadastro de empresa",
+    caption: "Crie e gerencie as empresas da persona, salvas no navegador.",
+    Component: CompanyRegistrationScreen,
   },
 ];
 
