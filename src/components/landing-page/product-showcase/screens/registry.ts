@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { HomeScreen, HomeScreenAuthenticated } from "./home";
+import { MarketListScreen } from "./pontos-de-coleta";
 import { ProfileScreen } from "./profile";
 import { ReportMapScreen } from "./report-map";
 
@@ -29,6 +30,12 @@ const screens: ProductScreen[] = [
     title: "Denúncia — mapa",
     caption: "Mapa interativo, pontos ao redor de você.",
     Component: ReportMapScreen,
+  },
+  {
+    id: "pontos-de-coleta",
+    title: "Pontos de coleta",
+    caption: "Empresas e coletores perto de você, com simulação de negociação.",
+    Component: MarketListScreen,
   },
   {
     id: "profile",
