@@ -432,7 +432,7 @@
                   "fill": "$lp-ink",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Aquilo que parece descarte pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material.",
+                  "content": "Aquilo que parece lixo pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material.",
                   "lineHeight": 1.12,
                   "fontFamily": "$lp-font-body",
                   "fontSize": 20

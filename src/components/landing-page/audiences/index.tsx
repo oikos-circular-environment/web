@@ -47,8 +47,9 @@ function Audiences() {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Cadastre horário, serviços oferecidos e tipos de resíduo aceitos
-                — apareça pra quem está procurando exatamente o que você recebe.
+                Cadastre horário, serviços oferecidos e tipos de resíduo
+                aceitos: apareça pra quem está procurando exatamente o que você
+                recebe.
               </p>
 
               <div className="mt-auto">

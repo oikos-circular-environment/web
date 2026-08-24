@@ -49,9 +49,9 @@ function Report() {
 
         <Reveal delay={400} className="mt-12">
           <Section.Body className="text-center">
-            Sua denúncia pode ser encaminhada a órgãos públicos de fiscalização
-            — e você acompanha o que acontece com ela, sem ficar no escuro
-            depois de enviar.
+            Sua denúncia pode ser encaminhada a órgãos públicos de fiscalização.
+            Você acompanha o que acontece com ela, sem ficar no escuro depois de
+            enviar.
           </Section.Body>
 
           <div className="mt-8 flex justify-center">

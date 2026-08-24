@@ -10,7 +10,7 @@ Copy consolidada de `plans/landing-page/02-problema/`, `04-publicos/`, `05-denun
 
 - Overline: `POR QUE ISSO IMPORTA`
 - H2: "Reciclar dá certo quando é fácil saber onde — e quando a gente enxerga valor no que sobra."
-- Corpo: "Aquilo que parece descarte pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material."
+- Corpo: "Aquilo que parece lixo pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material."
 - Fecho: "A provocação é simples: separar, avisar e encontrar o destino certo já muda o caminho do resíduo."
 
 Fundo claro (`#FAF9F4`, tom editorial — contrasta com o hero escuro). Reveal em `Section.Body` via `onScroll`.

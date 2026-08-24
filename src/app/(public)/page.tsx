@@ -17,7 +17,7 @@ export default function Home() {
           <Hero.Title>Resíduo tem valor. Nós mostramos onde.</Hero.Title>
           <Hero.Subtitle>
             A Oikos conecta quem gera resíduo a quem transforma esse resíduo em
-            recurso — com rastreabilidade do início ao fim.
+            recurso, com rastreabilidade do início ao fim.
           </Hero.Subtitle>
           <Hero.Actions>
             <GlassButton tone="solid" size="md">

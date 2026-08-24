@@ -15,7 +15,7 @@ A conclusão narrativa é simples: mesmo que o resíduo não valha dinheiro para
 **H2**: "Reciclar dá certo quando é fácil saber onde — e quando a gente enxerga valor no que sobra."
 
 **Corpo**:
-"Aquilo que parece descarte pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material."
+"Aquilo que parece lixo pode ser matéria-prima, renda ou solução para outra pessoa. Nem sempre o resíduo vale dinheiro para quem separa — mas pode valer para quem coleta, compra, transforma ou precisa daquele material."
 
 **Fecho**:
 "A provocação é simples: separar, avisar e encontrar o destino certo já muda o caminho do resíduo."
