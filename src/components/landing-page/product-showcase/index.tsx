@@ -1,65 +1,41 @@
 "use client";
 
 import { animate, cubicBezier } from "animejs";
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 
 import { Reveal } from "@/components/landing-page/ui/reveal";
 import { Section } from "@/components/landing-page/ui/section";
 
+import { BEATS, type ShowcaseBeat } from "./beats";
+import { CloudReveal } from "./cloud-reveal";
 import { DeviceFrame } from "./device-frame";
-import { CompanyRegisterScreen } from "./screens/company-register";
-import { LoginScreen } from "./screens/login";
-import { MapScreen } from "./screens/map";
-import { ReportScreen } from "./screens/report";
-import { SignUpScreen } from "./screens/signup";
-
-const screens = [
-  {
-    id: "login",
-    title: "Entrar",
-    caption: "Sem burocracia pra começar.",
-    Component: LoginScreen,
-  },
-  {
-    id: "signup",
-    title: "Cadastro",
-    caption: "Seu endereço, seu ponto de partida.",
-    Component: SignUpScreen,
-  },
-  {
-    id: "map",
-    title: "Mapa",
-    caption: "Ache o ponto certo pro seu resíduo.",
-    Component: MapScreen,
-  },
-  {
-    id: "company-register",
-    title: "Cadastrar ponto de coleta",
-    caption: "Sua empresa, visível pra quem procura.",
-    Component: CompanyRegisterScreen,
-  },
-  {
-    id: "report",
-    title: "Denúncia",
-    caption: "Registrou, documentou, foi encaminhado.",
-    Component: ReportScreen,
-  },
-];
+import { MockIdentityProvider } from "./mock-identity/mock-identity-context";
+import { ReportReveal } from "./report-reveal";
 
 const TRANSITION_EASE = cubicBezier(0.4, 0, 0.2, 1);
+const HOME_BEAT_ID = "home";
+const REPORT_MAP_BEAT_ID = "report-map";
 
-function PhoneScreen({ activeIndex }: { activeIndex: number }) {
+function BeatStage({
+  beat,
+  homeTrackRef,
+  reportMapTrackRef,
+}: {
+  beat: ShowcaseBeat;
+  homeTrackRef?: RefObject<HTMLElement | null>;
+  reportMapTrackRef?: RefObject<HTMLElement | null>;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [displayIndex, setDisplayIndex] = useState(activeIndex);
-  const lastFadeInRef = useRef(activeIndex);
+  const [displayed, setDisplayed] = useState(beat);
+  const lastFadeInIdRef = useRef(beat.id);
 
   useEffect(() => {
-    if (activeIndex === displayIndex) return;
+    if (beat.id === displayed.id) return;
     const node = containerRef.current;
     if (!node) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setDisplayIndex(activeIndex);
+      setDisplayed(beat);
       return;
     }
 
@@ -68,17 +44,17 @@ function PhoneScreen({ activeIndex }: { activeIndex: number }) {
       opacity: [currentOpacity, 0],
       duration: 150,
       ease: TRANSITION_EASE,
-      onComplete: () => setDisplayIndex(activeIndex),
+      onComplete: () => setDisplayed(beat),
     });
 
     return () => {
       animation.pause();
     };
-  }, [activeIndex, displayIndex]);
+  }, [beat, displayed.id]);
 
   useEffect(() => {
-    if (lastFadeInRef.current === displayIndex) return;
-    lastFadeInRef.current = displayIndex;
+    if (lastFadeInIdRef.current === displayed.id) return;
+    lastFadeInIdRef.current = displayed.id;
 
     const node = containerRef.current;
     if (!node) return;
@@ -92,21 +68,25 @@ function PhoneScreen({ activeIndex }: { activeIndex: number }) {
     return () => {
       animation.pause();
     };
-  }, [displayIndex]);
+  }, [displayed.id]);
 
-  const ActiveComponent =
-    screens[displayIndex]?.Component ?? screens[0].Component;
+  const ActiveComponent = displayed.Component;
 
   return (
     <div className="h-full w-full" ref={containerRef}>
-      <ActiveComponent />
+      {displayed.id === HOME_BEAT_ID && homeTrackRef ? (
+        <CloudReveal trackRef={homeTrackRef} />
+      ) : displayed.id === REPORT_MAP_BEAT_ID && reportMapTrackRef ? (
+        <ReportReveal trackRef={reportMapTrackRef} />
+      ) : (
+        <ActiveComponent />
+      )}
     </div>
   );
 }
 
-function ProductShowcase() {
+function useActiveBeatIndex(sectionRefs: RefObject<(HTMLElement | null)[]>) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -132,7 +112,18 @@ function ProductShowcase() {
         observer.disconnect();
       });
     };
-  }, []);
+  }, [sectionRefs]);
+
+  return activeIndex;
+}
+
+function ProductShowcaseContent() {
+  const desktopSectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const mobileSectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const homeTrackRef = useRef<HTMLElement | null>(null);
+  const reportMapTrackRef = useRef<HTMLElement | null>(null);
+  const desktopActiveIndex = useActiveBeatIndex(desktopSectionRefs);
+  const mobileActiveIndex = useActiveBeatIndex(mobileSectionRefs);
 
   return (
     <Section className="bg-background py-16 sm:py-24">
@@ -146,34 +137,45 @@ function ProductShowcase() {
 
         <div className="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-16">
           <div className="flex flex-col">
-            {screens.map((screen, index) => (
+            {BEATS.map((beat, index) => (
               <article
                 className="flex min-h-[80vh] flex-col justify-center md:min-h-screen"
-                data-screen={screen.id}
-                key={screen.id}
+                data-beat={beat.id}
+                key={beat.id}
                 ref={(el) => {
-                  sectionRefs.current[index] = el;
+                  desktopSectionRefs.current[index] = el;
+                  mobileSectionRefs.current[index] = el;
+                  if (beat.id === HOME_BEAT_ID) {
+                    homeTrackRef.current = el;
+                  }
+                  if (beat.id === REPORT_MAP_BEAT_ID) {
+                    reportMapTrackRef.current = el;
+                  }
                 }}
               >
                 <Reveal className="max-w-md">
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <div>
-                      <h3 className="font-heading text-2xl sm:text-3xl">
-                        {screen.title}
-                      </h3>
-                      <p className="text-lg text-muted-foreground">
-                        {screen.caption}
-                      </p>
-                    </div>
+                  <h3 className="font-heading text-2xl sm:text-3xl">
+                    {beat.title}
+                  </h3>
+                  <div className="mt-4 flex flex-col gap-4">
+                    {beat.topics.map((topic) => (
+                      <div key={topic.heading}>
+                        <p className="text-sm font-semibold text-foreground">
+                          {topic.heading}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {topic.body}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </Reveal>
 
                 <div className="mt-8 flex justify-center md:hidden">
                   <DeviceFrame className="scale-[0.85] sm:scale-100">
-                    <PhoneScreen activeIndex={index} />
+                    {index === mobileActiveIndex ? (
+                      <BeatStage beat={beat} />
+                    ) : null}
                   </DeviceFrame>
                 </div>
               </article>
@@ -183,13 +185,25 @@ function ProductShowcase() {
           <div className="hidden md:block">
             <div className="sticky top-24 flex min-h-[calc(100vh-12rem)] items-center justify-center">
               <DeviceFrame>
-                <PhoneScreen activeIndex={activeIndex} />
+                <BeatStage
+                  beat={BEATS[desktopActiveIndex] ?? BEATS[0]}
+                  homeTrackRef={homeTrackRef}
+                  reportMapTrackRef={reportMapTrackRef}
+                />
               </DeviceFrame>
             </div>
           </div>
         </div>
       </div>
     </Section>
+  );
+}
+
+function ProductShowcase() {
+  return (
+    <MockIdentityProvider>
+      <ProductShowcaseContent />
+    </MockIdentityProvider>
   );
 }
 

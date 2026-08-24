@@ -18,6 +18,7 @@ import type {
 } from "./types";
 
 const MAX_WAVES = 100;
+const IDLE_PAUSE_FRAMES = 36;
 const QUALITY_SCALE: Record<RippleQuality, number> = {
   low: 0.4,
   medium: 0.7,
@@ -361,6 +362,7 @@ function RippleRevealCanvas({
         pointer.y =
           1 - (event.clientY - containerRect.top) / containerRect.height;
         pointer.hasMoved = true;
+        if (!running && !reducedMotion) play();
       };
 
       window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -368,6 +370,7 @@ function RippleRevealCanvas({
       window.addEventListener("resize", updateRect, { passive: true });
 
       let last = performance.now();
+      let idleFrames = 0;
 
       function frame(time: number) {
         const delta = Math.min((time - last) / 1000, MAX_DELTA);
@@ -393,6 +396,8 @@ function RippleRevealCanvas({
           }
         }
 
+        let hasActiveWaves = false;
+
         for (let i = 0; i < MAX_WAVES; i += 1) {
           const wave = waves[i];
           if (wave.opacity <= 0) {
@@ -409,6 +414,7 @@ function RippleRevealCanvas({
             continue;
           }
 
+          hasActiveWaves = true;
           const half = (wave.scale * wave.size) / 2;
           offsetData[i * 2] = pointer ? wave.x * 2 - 1 : 0;
           offsetData[i * 2 + 1] = wave.y * 2 - 1;
@@ -425,6 +431,15 @@ function RippleRevealCanvas({
         renderer.render(waveMesh, camera);
         renderer.setRenderTarget(null);
         renderer.render(compositeMesh, camera);
+
+        // Sem waves ativas a imagem já está em repouso: pausa o loop de
+        // render em vez de continuar desenhando o mesmo frame parado.
+        if (hasActiveWaves) {
+          idleFrames = 0;
+        } else {
+          idleFrames += 1;
+          if (idleFrames > IDLE_PAUSE_FRAMES) pause();
+        }
       }
 
       let running = false;

@@ -17,6 +17,25 @@ Estado anterior deste ticket tinha 5 telas fixas (login, cadastro, mapa, cadastr
 | Denúncia | Tela simples, réplica do form | **Interação dedicada**: foto grande de descarte que encolhe pro telefone conforme o scroll, revelando o mapa interativo por dentro |
 | Tema | — | Só light. Variar bg/cor por seção é permitido, dark mode não é necessário no site nem no app |
 
+## Ajustes de 2026-08-24 (revisão do usuário sobre a demonstração do produto)
+
+A estratégia de demonstração mudou de novo: em vez de abrir pelo cadastro/login, o showcase entra direto na funcionalidade mais importante (pontos de coleta) e só mostra login de forma simulada, como ponte pro perfil. Sequência final, 6 beats:
+
+1. **Home** (`screens/home.tsx`) — abertura com efeito de nuvem 3D (`cloud-reveal/`)
+2. **Pontos de coleta** (`screens/pontos-de-coleta.tsx`)
+3. **Denúncia** (`screens/report-map.tsx`) — interação dedicada foto→mapa (`report-reveal/`)
+4. **Ponte de persona** (`screens/persona-bridge.tsx`, novo) — wrapper do `PersonaPicker` já existente, pré-seleciona a primeira persona (Cidadã) automaticamente pra quem só rola a página sem clicar
+5. **Perfil** (`screens/profile.tsx`)
+6. **Cadastro de empresa** (`screens/company-registration.tsx`) — aceito como está, funcionalidade real de cadastro de empresa continua incompleta, mas a tela é apresentada de forma completa
+
+Cada beat ganhou um bloco de conteúdo com título + 2-3 tópicos curtos (feature highlights), sem numeração — copy em `product-showcase/beats.ts`, separado do `screens/registry.ts` (que continua servindo só `/device-preview`).
+
+**Achado de implementação**: o `index.tsx` legado montava um `<DeviceFrame>` fixo por `article` no fallback mobile — ou seja, todas as telas ficavam montadas simultaneamente abaixo de 768px. Corrigido na reescrita: um segundo `IntersectionObserver` (`mobileActiveIndex`) garante que só a tela do beat mais visível monta por vez, também no mobile — necessário porque as telas novas fazem fetch real e uma delas monta um mapa MapLibre real.
+
+**Achado de implementação (cloud-reveal)**: `renderer.forceContextLoss()` no cleanup do `CloudRevealCanvas` matava o contexto WebGL do `<canvas>`, e como o React (StrictMode em dev) remonta o efeito no mesmo nó DOM, o `WebGLRenderer` da segunda montagem herdava um contexto já morto (`getContext` retorna o mesmo contexto pro mesmo canvas, mesmo perdido). Corrigido removendo o `forceContextLoss()` do cleanup — só `renderer.dispose()`, que libera os recursos de GPU sem invalidar o contexto.
+
+Todos os 6 beats validados rodando `/` localmente (sticky scroll desktop, crossfade, interpolação contínua da Denúncia, ponte de persona refletindo em tempo real em Perfil/Cadastro de empresa), `npm run lint`, `npx tsc --noEmit` e `npm run build` limpos.
+
 ## Sequência revisada (3 beats, não mais telas fixas 1:1)
 
 1. **Home** — `screens/home.tsx`, réplica de `mobile/src/app/(tabs)/(home)/index.tsx` (HomeHero + carrossel de serviços). Entrada da seção com nuvem 3D revelando a ilha (ver abaixo).
@@ -132,17 +151,13 @@ product-showcase/
 
 ## Checklist
 
-- [ ] Remover `login.tsx`, `signup.tsx`, `company-register.tsx`, `map.tsx` de `screens/` e do array `screens` em `product-showcase/index.tsx`
-- [ ] `screens/home.tsx` — transliterada de `(home)/index.tsx`, `HomeHero` + `ServicesCarousel`, dados mockados
-- [ ] `cloud-reveal/` — cena 3D de nuvem (billboards + shader de ruído), gate igual ao T05, fallback estático com `step-03.png`/ilha
-- [ ] `screens/collection-points/list.tsx` — listagem + filtro de localização (mock Rondonópolis-MT) + filtro de raio + chips de categoria
-- [ ] `screens/collection-points/detail-general.tsx` e `detail-simulation.tsx` — transliteradas de `market/[companyId].tsx`
-- [ ] `report-reveal/index.tsx` — imagem gerada (Higgsfield) encolhendo via `useScrollSync` dedicado até encaixar no `DeviceFrame`
-- [ ] Mapa da Denúncia usando `<Map>`/`<MapMarker>` de `ui/map.tsx` (não instalar biblioteca nova), pino customizado, mock Rondonópolis-MT, outros pontos de coleta ao redor
-- [ ] `ui/bottom-sheet` (ou uso direto do `Sheet` com classes) — cantos superiores arredondados + drag handle, conforme prints de referência
-- [ ] `product-showcase/index.tsx` com sticky scroll + state machine dos 3 beats (Home / Pontos de coleta / Denúncia)
-- [ ] Transição 350ms (150 out → swap → 200 in) via `use-anime-scope` nos beats discretos (Home, Pontos de coleta) — Denúncia usa interpolação contínua, não essa transição
-- [ ] Legendas laterais sincronizadas com o estado ativo (copy atualizada acima, pendente validação do usuário)
-- [ ] Mobile (<768px): sem sticky, reflow, `IntersectionObserver` disparando a troca nos beats discretos; `report-reveal` com fallback mais simples (sem scroll contínuo — considerar snap direto pro mapa)
-- [ ] Conferência visual contra `screens-v2` e contra os nodes do `.pen` (`r5km8p`, `k8FJdz`, `m7x6Xu`, `J0viJC`, `wMzDB`, `FatMK`)
-- [ ] `npm run lint` e `npx tsc --noEmit` limpos
+- [x] Remover `login.tsx`, `signup.tsx`, `company-register.tsx`, `map.tsx`, `report.tsx` de `screens/` (órfãos após a reescrita)
+- [x] `screens/home.tsx`, `screens/pontos-de-coleta.tsx`, `screens/report-map.tsx`, `screens/profile.tsx`, `screens/company-registration.tsx` — telas novas, validadas isoladamente via `/device-preview`
+- [x] `screens/persona-bridge.tsx` — wrapper do `PersonaPicker` como ponte narrativa antes do Perfil, pré-seleção automática da primeira persona
+- [x] `product-showcase/beats.ts` — copy título + tópicos (sem numeração) dos 6 beats
+- [x] `product-showcase/index.tsx` reescrito: `MockIdentityProvider` local, sticky scroll + crossfade nos beats discretos, mount único por beat no mobile (bug de 6 telas montadas simultaneamente corrigido)
+- [x] `cloud-reveal/` — cena 3D de nuvem (shader de ruído FBM/valor em GLSL, `RawShaderMaterial`, render-on-demand por progresso de scroll, não loop contínuo), gate por `IntersectionObserver`+`useWebglSupport`+`prefers-reduced-motion` igual ao T05, fallback com a imagem estática da ilha
+- [x] `report-reveal/` — foto de descarte (`public/device-preview/home/denuncias.jpg`, já existente) encolhendo via `useScrollSync` dedicado até crossfade para o `ReportMapScreen` real; mobile usa snap direto (sem interpolação)
+- [x] `page.tsx`: wiring de `Manifesto`/`Audiences`/`Report`/`Closing` (antes só tinha `Hero`+`ProductShowcase`)
+- [x] Conferência visual rodando `/` localmente (todos os 6 beats, desktop sticky, crossfade, interpolação contínua, ponte de persona refletindo em Perfil/Cadastro de empresa)
+- [x] `npm run lint`, `npx tsc --noEmit` e `npm run build` limpos

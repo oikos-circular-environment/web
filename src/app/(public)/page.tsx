@@ -1,5 +1,9 @@
+import { Audiences } from "@/components/landing-page/audiences";
+import { Closing } from "@/components/landing-page/closing";
 import { Hero } from "@/components/landing-page/hero";
+import { Manifesto } from "@/components/landing-page/manifesto";
 import { ProductShowcase } from "@/components/landing-page/product-showcase";
+import { Report } from "@/components/landing-page/report";
 import { GlassButton } from "@/components/landing-page/ui/glass-button";
 
 export default function Home() {
@@ -26,7 +30,11 @@ export default function Home() {
         </div>
       </Hero>
 
+      <Manifesto />
       <ProductShowcase />
+      <Audiences />
+      <Report />
+      <Closing />
     </>
   );
 }
