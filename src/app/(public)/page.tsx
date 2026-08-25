@@ -4,6 +4,7 @@ import { Manifesto } from "@/components/landing-page/manifesto";
 import { PersonaSelect } from "@/components/landing-page/persona-select";
 import { ProductShowcase } from "@/components/landing-page/product-showcase";
 import { MockIdentityProvider } from "@/components/landing-page/product-showcase/mock-identity/mock-identity-context";
+import { DotField } from "@/components/landing-page/ui/dot-field";
 import { GlassButton } from "@/components/landing-page/ui/glass-button";
 
 export default function Home() {
@@ -33,11 +34,14 @@ export default function Home() {
       </Hero>
 
       <Manifesto />
-      <MockIdentityProvider>
-        <PersonaSelect />
-        <ProductShowcase />
-      </MockIdentityProvider>
-      <Closing />
+      <div className="relative isolate bg-background">
+        <DotField />
+        <MockIdentityProvider>
+          <PersonaSelect />
+          <ProductShowcase />
+        </MockIdentityProvider>
+        <Closing />
+      </div>
     </>
   );
 }

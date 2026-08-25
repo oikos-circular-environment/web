@@ -13,9 +13,9 @@ function PersonaPicker() {
   return (
     <div className="flex flex-col gap-3">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        As telas abaixo simulam um login — escolha quem você quer ser pra
-        navegar como essa pessoa. Nada disso autentica de verdade na api, é só
-        pra dar a sensação real de uso.
+        As telas abaixo simulam um login. Escolha quem você quer ser pra navegar
+        como essa pessoa. Nada disso autentica de verdade na api, é só pra dar a
+        sensação real de uso.
       </p>
 
       <div className="flex flex-wrap gap-3">

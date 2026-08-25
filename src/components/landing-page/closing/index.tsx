@@ -6,7 +6,7 @@ import { Reveal } from "@/components/landing-page/ui/reveal";
 
 function Closing() {
   return (
-    <Section className="bg-background py-16 sm:py-24">
+    <Section className="relative py-16 sm:py-24">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal className="text-center">
           <h2 className="font-heading text-2xl sm:text-3xl">

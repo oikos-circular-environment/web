@@ -152,7 +152,7 @@ function deriveAddress(addresses: {
   const streetPart = [addresses.street, addresses.streetNumber]
     .filter(Boolean)
     .join(", ");
-  return [streetPart, addresses.district].filter(Boolean).join(" — ") || null;
+  return [streetPart, addresses.district].filter(Boolean).join(", ") || null;
 }
 
 /** Distância geodésica em metros (haversine) — mesmo uso do `getDistance` (geolib) no mobile. */
@@ -1441,7 +1441,7 @@ function CreateComplaintSheet({
                   strokeWidth={2}
                 />
                 <span className="text-xs text-gray-500">
-                  {persona.address.street}, {persona.address.number} —{" "}
+                  {persona.address.street}, {persona.address.number},{" "}
                   {persona.address.district}
                 </span>
               </div>
@@ -1699,7 +1699,7 @@ function ReportMapScreen() {
         photoDataUrl: input.photoDataUrl,
         lat: persona.address.latitude,
         lon: persona.address.longitude,
-        address: `${persona.address.street}, ${persona.address.number} — ${persona.address.district}`,
+        address: `${persona.address.street}, ${persona.address.number}, ${persona.address.district}`,
       });
       setIsCreateSheetOpen(false);
       setSelectedComplaintId(created.id);

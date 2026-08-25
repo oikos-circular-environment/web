@@ -257,6 +257,14 @@ function HomeHero({ isAuthenticated }: { isAuthenticated: boolean }) {
           OIKOS
         </p>
 
+        <Image
+          alt=""
+          className="pointer-events-none absolute -right-10 bottom-0 object-contain"
+          height={210}
+          src="/device-preview/home/bonsai.webp"
+          width={204}
+        />
+
         <p className="mt-3 w-48 text-sm leading-4 text-gray-600">
           Denuncie ocorrências ambientais com foto e localização, vote com a
           comunidade e encontre empresas de reciclagem perto de você.

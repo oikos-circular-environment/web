@@ -119,7 +119,7 @@ function ProductShowcaseContent() {
   const mobileActiveIndex = useActiveBeatIndex(mobileSectionRefs);
 
   return (
-    <Section className="bg-background py-16 sm:py-24">
+    <Section className="py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal className="mb-12 text-center md:text-left">
           <Section.Header>
