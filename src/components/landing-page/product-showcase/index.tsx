@@ -3,26 +3,22 @@
 import { animate, cubicBezier } from "animejs";
 import { type RefObject, useEffect, useRef, useState } from "react";
 
+import { GlassButton } from "@/components/landing-page/ui/glass-button";
 import { Reveal } from "@/components/landing-page/ui/reveal";
 import { Section } from "@/components/landing-page/ui/section";
 
 import { BEATS, type ShowcaseBeat } from "./beats";
-import { CloudReveal } from "./cloud-reveal";
 import { DeviceFrame } from "./device-frame";
-import { MockIdentityProvider } from "./mock-identity/mock-identity-context";
 import { ReportReveal } from "./report-reveal";
 
 const TRANSITION_EASE = cubicBezier(0.4, 0, 0.2, 1);
-const HOME_BEAT_ID = "home";
 const REPORT_MAP_BEAT_ID = "report-map";
 
 function BeatStage({
   beat,
-  homeTrackRef,
   reportMapTrackRef,
 }: {
   beat: ShowcaseBeat;
-  homeTrackRef?: RefObject<HTMLElement | null>;
   reportMapTrackRef?: RefObject<HTMLElement | null>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,9 +70,7 @@ function BeatStage({
 
   return (
     <div className="h-full w-full" ref={containerRef}>
-      {displayed.id === HOME_BEAT_ID && homeTrackRef ? (
-        <CloudReveal trackRef={homeTrackRef} />
-      ) : displayed.id === REPORT_MAP_BEAT_ID && reportMapTrackRef ? (
+      {displayed.id === REPORT_MAP_BEAT_ID && reportMapTrackRef ? (
         <ReportReveal trackRef={reportMapTrackRef} />
       ) : (
         <ActiveComponent />
@@ -120,7 +114,6 @@ function useActiveBeatIndex(sectionRefs: RefObject<(HTMLElement | null)[]>) {
 function ProductShowcaseContent() {
   const desktopSectionRefs = useRef<(HTMLElement | null)[]>([]);
   const mobileSectionRefs = useRef<(HTMLElement | null)[]>([]);
-  const homeTrackRef = useRef<HTMLElement | null>(null);
   const reportMapTrackRef = useRef<HTMLElement | null>(null);
   const desktopActiveIndex = useActiveBeatIndex(desktopSectionRefs);
   const mobileActiveIndex = useActiveBeatIndex(mobileSectionRefs);
@@ -145,31 +138,67 @@ function ProductShowcaseContent() {
                 ref={(el) => {
                   desktopSectionRefs.current[index] = el;
                   mobileSectionRefs.current[index] = el;
-                  if (beat.id === HOME_BEAT_ID) {
-                    homeTrackRef.current = el;
-                  }
                   if (beat.id === REPORT_MAP_BEAT_ID) {
                     reportMapTrackRef.current = el;
                   }
                 }}
               >
-                <Reveal className="max-w-md">
-                  <h3 className="font-heading text-2xl sm:text-3xl">
-                    {beat.title}
-                  </h3>
+                <div className="max-w-md">
+                  <Reveal>
+                    <h3 className="font-heading text-2xl sm:text-3xl">
+                      {beat.title}
+                    </h3>
+                  </Reveal>
+
                   <div className="mt-4 flex flex-col gap-4">
-                    {beat.topics.map((topic) => (
-                      <div key={topic.heading}>
+                    {beat.topics.map((topic, topicIndex) => (
+                      <Reveal
+                        key={topic.heading}
+                        delay={100 * (topicIndex + 1)}
+                      >
                         <p className="text-sm font-semibold text-foreground">
                           {topic.heading}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {topic.body}
                         </p>
-                      </div>
+                      </Reveal>
                     ))}
                   </div>
-                </Reveal>
+
+                  {beat.steps ? (
+                    <div className="mt-6 flex flex-col gap-4">
+                      {beat.steps.map((step, stepIndex) => (
+                        <Reveal
+                          key={step.number}
+                          delay={100 * (beat.topics.length + stepIndex + 1)}
+                          className="flex items-center gap-4"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#B8842A] text-sm font-semibold text-white">
+                            {step.number}
+                          </div>
+                          <p className="text-sm text-foreground">
+                            {step.title}
+                          </p>
+                        </Reveal>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {beat.cta ? (
+                    <Reveal
+                      delay={
+                        100 *
+                        (beat.topics.length + (beat.steps?.length ?? 0) + 1)
+                      }
+                      className="mt-6"
+                    >
+                      <GlassButton tone="solid" size="md" asChild>
+                        <a href={beat.cta.href}>{beat.cta.label}</a>
+                      </GlassButton>
+                    </Reveal>
+                  ) : null}
+                </div>
 
                 <div className="mt-8 flex justify-center md:hidden">
                   <DeviceFrame className="scale-[0.85] sm:scale-100">
@@ -187,7 +216,6 @@ function ProductShowcaseContent() {
               <DeviceFrame>
                 <BeatStage
                   beat={BEATS[desktopActiveIndex] ?? BEATS[0]}
-                  homeTrackRef={homeTrackRef}
                   reportMapTrackRef={reportMapTrackRef}
                 />
               </DeviceFrame>
@@ -199,12 +227,4 @@ function ProductShowcaseContent() {
   );
 }
 
-function ProductShowcase() {
-  return (
-    <MockIdentityProvider>
-      <ProductShowcaseContent />
-    </MockIdentityProvider>
-  );
-}
-
-export { ProductShowcase };
+export { ProductShowcaseContent as ProductShowcase };

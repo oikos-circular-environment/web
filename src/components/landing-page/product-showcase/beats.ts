@@ -2,17 +2,20 @@ import type { ComponentType } from "react";
 
 import { CompanyRegistrationScreen } from "./screens/company-registration";
 import { HomeScreen } from "./screens/home";
-import { PersonaBridgeScreen } from "./screens/persona-bridge";
 import { MarketListScreen } from "./screens/pontos-de-coleta";
 import { ProfileScreen } from "./screens/profile";
 import { ReportMapScreen } from "./screens/report-map";
 
 type ShowcaseTopic = { heading: string; body: string };
+type ShowcaseStep = { number: number; title: string };
+type ShowcaseCta = { label: string; href: string };
 
 type ShowcaseBeat = {
   id: string;
   title: string;
   topics: ShowcaseTopic[];
+  steps?: ShowcaseStep[];
+  cta?: ShowcaseCta;
   Component: ComponentType;
 };
 
@@ -72,22 +75,19 @@ const BEATS: ShowcaseBeat[] = [
         body: "Da denúncia à resolução, tudo fica documentado. Quem fiscaliza não parte do zero.",
       },
     ],
-    Component: ReportMapScreen,
-  },
-  {
-    id: "persona-bridge",
-    title: "Um app, papéis diferentes.",
-    topics: [
+    steps: [
+      { number: 1, title: "Tire uma foto do local" },
       {
-        heading: "Cidadã, coletor, empresa.",
-        body: "Escolha abaixo quem você quer ser pra continuar. É assim que o app se comporta diferente pra cada tipo de pessoa.",
+        number: 2,
+        title: "Confirme a localização (geolocalização automática)",
       },
-      {
-        heading: "Nada disso sai daqui.",
-        body: "É só uma simulação pra você sentir o produto. Não autentica em nenhum servidor de verdade.",
-      },
+      { number: 3, title: "Acompanhe o status até a resolução" },
     ],
-    Component: PersonaBridgeScreen,
+    cta: {
+      label: "Fazer uma denúncia",
+      href: "#denunciar",
+    },
+    Component: ReportMapScreen,
   },
   {
     id: "profile",
