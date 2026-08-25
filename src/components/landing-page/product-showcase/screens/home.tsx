@@ -20,6 +20,7 @@ import {
 
 import { useMockIdentity } from "../mock-identity/mock-identity-context";
 import { PERSONAS } from "../mock-identity/personas";
+import { BottomTabBar } from "../ui/bottom-tab-bar";
 
 type BadgeItem = {
   icon: typeof Recycle;
@@ -230,20 +231,32 @@ function HomeUserCard() {
   );
 }
 
-function SessionCta() {
+function SessionCta({ progress = 0 }: { progress?: number }) {
   return (
     <div className="relative flex h-12 items-center overflow-hidden rounded-4xl border border-white/40 bg-primary/15 shadow-sm backdrop-blur-sm">
-      <div className="absolute left-1.5 flex p-2 items-center justify-center rounded-full bg-white shadow-sm">
+      <div
+        className="absolute flex items-center justify-center rounded-full bg-white p-2 shadow-sm"
+        style={{ left: `calc(0.375rem + ${progress} * (100% - 3rem))` }}
+      >
         <ArrowRight className="h-5 w-5 text-primary" />
       </div>
-      <p className="flex-1 text-center text-sm font-bold text-gray-800">
+      <p
+        className="flex-1 text-center text-sm font-bold text-gray-800"
+        data-demo-target="session-cta"
+      >
         Iniciar sessão
       </p>
     </div>
   );
 }
 
-function HomeHero({ isAuthenticated }: { isAuthenticated: boolean }) {
+function HomeHero({
+  isAuthenticated,
+  sessionProgress = 0,
+}: {
+  isAuthenticated: boolean;
+  sessionProgress?: number;
+}) {
   return (
     <div className="relative overflow-hidden bg-linear-to-b from-[#f2e6ce] to-white px-5 pt-12 pb-4">
       {isAuthenticated ? (
@@ -275,7 +288,7 @@ function HomeHero({ isAuthenticated }: { isAuthenticated: boolean }) {
         </div>
       </div>
 
-      {isAuthenticated ? null : <SessionCta />}
+      {isAuthenticated ? null : <SessionCta progress={sessionProgress} />}
     </div>
   );
 }
@@ -334,8 +347,10 @@ function ServiceCard({ service }: { service: Service }) {
 
 function HomeScreen({
   isAuthenticated = false,
+  sessionProgress = 0,
 }: {
   isAuthenticated?: boolean;
+  sessionProgress?: number;
 }) {
   const [api, setApi] = useState<CarouselApi>();
   const { activeIndex, progress, pause, resume } = useServicesAutoplay(
@@ -352,7 +367,10 @@ function HomeScreen({
 
   return (
     <div className="flex min-h-full flex-col bg-white">
-      <HomeHero isAuthenticated={isAuthenticated} />
+      <HomeHero
+        isAuthenticated={isAuthenticated}
+        sessionProgress={sessionProgress}
+      />
 
       <div className="flex flex-col gap-3 px-4 pt-4 pb-8">
         <h2 className="font-heading text-lg font-semibold">Serviços</h2>
@@ -376,6 +394,8 @@ function HomeScreen({
           </Carousel>
         </div>
       </div>
+
+      <BottomTabBar active="home" />
     </div>
   );
 }

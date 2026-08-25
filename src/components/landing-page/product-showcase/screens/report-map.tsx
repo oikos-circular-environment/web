@@ -292,12 +292,14 @@ function ComplaintVoteButton({
   active,
   disabled,
   onClick,
+  dataDemoTarget,
 }: {
   type: "RESOLVED" | "NOT_RESOLVED";
   count: number;
   active: boolean;
   disabled: boolean;
   onClick: () => void;
+  dataDemoTarget?: string;
 }) {
   const config = VOTE_BUTTON_STYLES[type];
   const Icon = config.icon;
@@ -329,6 +331,7 @@ function ComplaintVoteButton({
             ? config.activeClasses
             : "border-border bg-white",
       )}
+      data-demo-target={dataDemoTarget}
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -691,6 +694,7 @@ function FilterRow({
       <button
         aria-label="Filtros"
         className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md bg-lime-800 shadow-sm"
+        data-demo-target="filter-button"
         onClick={onOpenSheet}
         type="button"
       >
@@ -705,11 +709,13 @@ function FilterChip({
   onClick,
   icon: Icon,
   label,
+  dataDemoTarget,
 }: {
   selected: boolean;
   onClick: () => void;
   icon?: typeof Recycle | null;
   label: string;
+  dataDemoTarget?: string;
 }) {
   return (
     <button
@@ -719,6 +725,7 @@ function FilterChip({
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-white text-muted-foreground",
       )}
+      data-demo-target={dataDemoTarget}
       onClick={onClick}
       type="button"
     >
@@ -824,6 +831,9 @@ function ComplaintFilterSheet({
           <div className="mb-4 flex flex-wrap gap-2">
             {HAZARD_FILTER_OPTIONS.map((option) => (
               <FilterChip
+                data-demo-target={
+                  option.key === "high" ? "filter-hazard-chip" : undefined
+                }
                 icon={option.icon}
                 key={option.key}
                 label={option.label}
@@ -884,6 +894,7 @@ function ComplaintFilterSheet({
           </button>
           <button
             className="h-11 flex-1 cursor-pointer rounded-md bg-lime-800 text-sm font-semibold text-white"
+            data-demo-target="filter-apply"
             onClick={onApply}
             type="button"
           >
@@ -1139,6 +1150,7 @@ function ComplaintDetailSheet({
                 <ComplaintVoteButton
                   active={currentVote === "RESOLVED"}
                   count={resolvedVotes}
+                  data-demo-target="vote-resolved"
                   disabled={isResolved || !canInteract}
                   onClick={() => castVote("RESOLVED")}
                   type="RESOLVED"
@@ -1224,6 +1236,7 @@ function ComplaintDetailSheet({
                 <div className="mt-1 flex flex-col gap-2">
                   <textarea
                     className="min-h-16 rounded-md border border-border p-2 text-sm"
+                    data-demo-target="resolution-textarea"
                     onChange={(event) => setResolutionDraft(event.target.value)}
                     placeholder="Descreva como essa denúncia foi resolvida..."
                     value={resolutionDraft}
@@ -1297,6 +1310,7 @@ function ComplaintDetailSheet({
 
                   <button
                     className="h-10 cursor-pointer rounded-md border border-border bg-white text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300"
+                    data-demo-target="resolution-submit"
                     disabled={!resolutionDraft.trim()}
                     onClick={handleSubmitResolution}
                     type="button"
@@ -1455,8 +1469,13 @@ function CreateComplaintSheet({
                 Categorias identificadas
               </p>
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {categories.map((category, categoryIndex) => (
                   <FilterChip
+                    data-demo-target={
+                      categoryIndex === 0
+                        ? "complaint-category-chip"
+                        : undefined
+                    }
                     icon={Recycle}
                     key={category.id}
                     label={category.name}
@@ -1515,6 +1534,7 @@ function CreateComplaintSheet({
               <p className="text-sm font-semibold text-gray-900">Observações</p>
               <textarea
                 className="min-h-20 rounded-md border border-border p-2 text-sm"
+                data-demo-target="complaint-observation"
                 maxLength={500}
                 onChange={(event) => setObservations(event.target.value)}
                 placeholder="Descreva o ocorrido com detalhes relevantes..."
@@ -1539,6 +1559,7 @@ function CreateComplaintSheet({
               </button>
               <button
                 className="h-11 flex-1 cursor-pointer rounded-md bg-lime-800 text-sm font-semibold text-white"
+                data-demo-target="complaint-submit"
                 onClick={handleSubmit}
                 type="button"
               >
@@ -1763,6 +1784,7 @@ function ReportMapScreen() {
         <button
           aria-label="Nova denúncia"
           className="flex h-12.5 w-12.5 cursor-pointer items-center justify-center rounded-md bg-lime-800 shadow-md"
+          data-demo-target="create-complaint-btn"
           onClick={() => setIsCreateSheetOpen(true)}
           type="button"
         >

@@ -183,6 +183,7 @@ function FormField({
   placeholder,
   inputMode,
   action,
+  dataDemoTarget,
 }: {
   label: string;
   value: string;
@@ -190,11 +191,12 @@ function FormField({
   placeholder?: string;
   inputMode?: "text" | "email" | "tel" | "numeric";
   action?: ReactNode;
+  dataDemoTarget?: string;
 }) {
   const id = useId();
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1" data-demo-target={dataDemoTarget}>
       <label className="text-xs font-medium text-gray-600" htmlFor={id}>
         {label}
       </label>
@@ -620,6 +622,7 @@ function CreateCompanySheet({
             />
 
             <FormField
+              data-demo-target="company-name"
               label={
                 identityType === "CNPJ"
                   ? "Nome fantasia"
@@ -681,6 +684,7 @@ function CreateCompanySheet({
             </button>
             <button
               className="h-11 flex-1 cursor-pointer rounded-md bg-lime-800 text-sm font-semibold text-white"
+              data-demo-target="company-submit"
               onClick={handleSubmit}
               type="button"
             >
@@ -720,6 +724,7 @@ function CompanyRegistrationContent({ persona }: { persona: Persona }) {
 
         <button
           className="mt-4 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-md bg-lime-800 text-sm font-semibold text-white"
+          data-demo-target="company-new-btn"
           onClick={() => setIsCreateSheetOpen(true)}
           type="button"
         >

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 
 import { useMockIdentity } from "../mock-identity/mock-identity-context";
+import { BottomTabBar } from "../ui/bottom-tab-bar";
 
 type FormState = {
   fullName: string;
@@ -280,6 +281,8 @@ function ProfileScreen() {
           </p>
         ) : null}
       </div>
+
+      <BottomTabBar active="perfil" />
     </div>
   );
 }

@@ -24,7 +24,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/libs/utils";
 
@@ -38,6 +38,10 @@ import {
   type MarketSimulationItemType,
   useMarketSimulation,
 } from "../mock-identity/use-market-simulation";
+import {
+  type MockCompany,
+  useMockCompanies,
+} from "../mock-identity/use-mock-companies";
 import { useSetStatusBarVariant } from "../status-bar-context";
 
 /** Rondonópolis, MT — mesma coordenada usada no filtro de Pontos de coleta e no mapa de Denúncia. */
@@ -88,6 +92,63 @@ const DAY_OF_WEEK_BY_INDEX = [
   "FRIDAY",
   "SATURDAY",
 ] as const satisfies readonly CompanyDayOfWeek[];
+
+function mockCompanyToMarketCompany(mock: MockCompany): MarketCompany {
+  const now = new Date();
+  const weekday = DAY_OF_WEEK_BY_INDEX[now.getDay()];
+  return {
+    id: mock.id,
+    business_name: mock.businessName || mock.corporateName,
+    corporate_name: mock.corporateName,
+    company_type: mock.companyType,
+    status: mock.status,
+    phones: mock.phones,
+    address: {
+      id: `${mock.id}-addr`,
+      zip_code: "78700-000",
+      street: "Rua Demo",
+      number: "123",
+      complement: null,
+      district: "Centro",
+      city: "Rondonópolis",
+      state: "Mato Grosso",
+      state_code: "MT",
+      latitude: CENTER[1],
+      longitude: CENTER[0],
+    },
+    avatar: mock.avatarDataUrl,
+    services: [],
+    wastes: [
+      {
+        id: `${mock.id}-waste-oleo`,
+        name: "Óleo de cozinha",
+        price: 2.5,
+        unit: "L",
+        waste_category_id: "demo-waste",
+        quantity: 0,
+        description: "Óleo de cozinha usado para reciclagem",
+        waste_category: {
+          id: "demo-waste",
+          name: "Óleo",
+          hazard_levels: ["LOW"],
+        },
+      },
+    ],
+    business_hours: [
+      {
+        id: `${mock.id}-bh`,
+        day_of_week: weekday,
+        is_open: true,
+        time_slots: [
+          { id: `${mock.id}-slot`, start_time: "09:00", end_time: "18:00" },
+        ],
+      },
+    ],
+    distance_in_meters: 0,
+    identity: mock.identity,
+    identity_type: "CNPJ",
+  };
+}
 
 function formatDistanceLabel(meters: number) {
   if (meters >= 1000) {
@@ -195,7 +256,7 @@ type AppliedFilters = {
 const DEFAULT_FILTERS: AppliedFilters = {
   query: null,
   category: null,
-  radius: 2000,
+  radius: 10000,
 };
 
 function FilterChip({
@@ -203,11 +264,13 @@ function FilterChip({
   onClick,
   icon: Icon,
   label,
+  dataDemoTarget,
 }: {
   selected: boolean;
   onClick: () => void;
   icon?: typeof Recycle | null;
   label: string;
+  dataDemoTarget?: string;
 }) {
   return (
     <button
@@ -217,6 +280,7 @@ function FilterChip({
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-white text-muted-foreground",
       )}
+      data-demo-target={dataDemoTarget}
       onClick={onClick}
       type="button"
     >
@@ -319,11 +383,13 @@ function CompanyCard({
   now,
   category,
   onSelect,
+  index,
 }: {
   company: MarketCompany;
   now: Date;
   category: MarketCategory;
   onSelect: () => void;
+  index: number;
 }) {
   const showWastes = !category || category === "waste";
   const showServices = !category || category === "services";
@@ -331,6 +397,7 @@ function CompanyCard({
   return (
     <button
       className="flex w-full cursor-pointer flex-col gap-3 rounded-md border border-border bg-white p-4 text-left transition-colors hover:bg-gray-50"
+      data-demo-target={index === 0 ? "company-card-0" : undefined}
       onClick={onSelect}
       type="button"
     >
@@ -532,14 +599,17 @@ function CatalogItemCard({
   icon: Icon,
   item,
   onSelect,
+  index,
 }: {
   icon: typeof Recycle;
   item: CompanyCatalogItem;
   onSelect: () => void;
+  index: number;
 }) {
   return (
     <button
       className="flex w-full cursor-pointer flex-col gap-2 rounded-md border border-border bg-white p-3 text-left transition-colors hover:bg-gray-50"
+      data-demo-target={index === 0 ? "catalog-item-0" : undefined}
       onClick={onSelect}
       type="button"
     >
@@ -708,9 +778,10 @@ function CompanyGeneralTab({
         <h3 className="text-sm font-semibold text-gray-950">Produtos</h3>
         {company.wastes.length > 0 ? (
           <div className="flex flex-col gap-2">
-            {company.wastes.map((waste) => (
+            {company.wastes.map((waste, index) => (
               <CatalogItemCard
                 icon={Recycle}
+                index={index}
                 item={waste}
                 key={waste.id}
                 onSelect={() => onSelectItem("waste", waste.id)}
@@ -728,9 +799,10 @@ function CompanyGeneralTab({
         <h3 className="text-sm font-semibold text-gray-950">Serviços</h3>
         {company.services.length > 0 ? (
           <div className="flex flex-col gap-2">
-            {company.services.map((service) => (
+            {company.services.map((service, index) => (
               <CatalogItemCard
                 icon={Hammer}
+                index={index}
                 item={service}
                 key={service.id}
                 onSelect={() => onSelectItem("service", service.id)}
@@ -1141,6 +1213,8 @@ function MarketListScreen() {
   );
   const [now, setNow] = useState(() => new Date());
 
+  const { companies: mockCompanies } = useMockCompanies();
+
   useEffect(() => {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -1158,7 +1232,7 @@ function MarketListScreen() {
   }, [queryDraft]);
 
   const {
-    companies,
+    companies: apiCompanies,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -1170,6 +1244,11 @@ function MarketListScreen() {
     query: appliedFilters.query,
     category: appliedFilters.category,
   });
+
+  const companies = useMemo(() => {
+    const fromMock = mockCompanies.map(mockCompanyToMarketCompany);
+    return [...fromMock, ...apiCompanies];
+  }, [mockCompanies, apiCompanies]);
 
   const radiusLabel =
     RADIUS_OPTIONS.find((option) => option.value === appliedFilters.radius)
@@ -1207,6 +1286,7 @@ function MarketListScreen() {
           />
           <input
             className="h-full w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-muted-foreground"
+            data-demo-target="market-search"
             onChange={(event) => setQueryDraft(event.target.value)}
             placeholder="Empresas, resíduos ou serviços"
             value={queryDraft}
@@ -1215,6 +1295,7 @@ function MarketListScreen() {
 
         <div className="mt-3 flex items-center gap-2">
           <FilterChip
+            data-demo-target="market-filter-chip"
             icon={Recycle}
             label="Resíduos"
             onClick={() => toggleCategory("waste")}
@@ -1257,10 +1338,11 @@ function MarketListScreen() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {companies.map((company) => (
+            {companies.map((company, index) => (
               <CompanyCard
                 category={appliedFilters.category}
                 company={company}
+                index={index}
                 key={company.id}
                 now={now}
                 onSelect={() => setSelectedCompanyId(company.id)}
