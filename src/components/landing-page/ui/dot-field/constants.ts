@@ -1,0 +1,52 @@
+const DOT_SPACING = 15;
+const DOT_RADIUS = 1.15;
+const GLOW_DOT_RADIUS = 2.1;
+const CURSOR_RADIUS = 150;
+
+const ICON_GRID_STRIDE = 3;
+const ICON_RADIUS = 40;
+const ICON_ACTIVE_MAX = 1;
+
+const SQUARE_SIZE = 8;
+const ICON_SIZE = 28;
+
+const SPARKLE_SLOTS = 2;
+const SPARKLE_EDGE_MARGIN = 24;
+const SPARKLE_HOLD_MIN_MS = 4200;
+const SPARKLE_HOLD_MAX_MS = 7600;
+const SPARKLE_GAP_MIN_MS = 500;
+const SPARKLE_GAP_MAX_MS = 2200;
+
+const SQUARE_EXIT_DURATION = 180;
+const PLAYER_ENTER_DURATION = 220;
+const PLAYER_ENTER_DELAY = 80;
+const CROSSFADE_EXIT_DURATION = 200;
+
+const FIELD_MASK =
+  "linear-gradient(to bottom, transparent, black 160px, black calc(100% - 160px), transparent)";
+const CURSOR_MASK =
+  "radial-gradient(circle var(--cursor-radius) at var(--cursor-x) var(--cursor-y), black 0%, transparent 100%)";
+
+export {
+  CROSSFADE_EXIT_DURATION,
+  CURSOR_MASK,
+  CURSOR_RADIUS,
+  DOT_RADIUS,
+  DOT_SPACING,
+  FIELD_MASK,
+  GLOW_DOT_RADIUS,
+  ICON_ACTIVE_MAX,
+  ICON_GRID_STRIDE,
+  ICON_RADIUS,
+  ICON_SIZE,
+  PLAYER_ENTER_DELAY,
+  PLAYER_ENTER_DURATION,
+  SPARKLE_EDGE_MARGIN,
+  SPARKLE_GAP_MAX_MS,
+  SPARKLE_GAP_MIN_MS,
+  SPARKLE_HOLD_MAX_MS,
+  SPARKLE_HOLD_MIN_MS,
+  SPARKLE_SLOTS,
+  SQUARE_EXIT_DURATION,
+  SQUARE_SIZE,
+};
