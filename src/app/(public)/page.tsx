@@ -11,22 +11,24 @@ export default function Home() {
     <>
       <Hero>
         <Hero.Background />
-        <Hero.Nav />
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center">
-          <Hero.Badge>Economia circular de resíduos</Hero.Badge>
-          <Hero.Title>Resíduo tem valor. Nós mostramos onde.</Hero.Title>
-          <Hero.Subtitle>
-            A Oikos conecta quem gera resíduo a quem transforma esse resíduo em
-            recurso, com rastreabilidade do início ao fim.
-          </Hero.Subtitle>
-          <Hero.Actions>
-            <GlassButton tone="solid" size="md">
-              Começar
-            </GlassButton>
-            <GlassButton tone="glass" size="md">
-              Como funciona
-            </GlassButton>
-          </Hero.Actions>
+        <Hero.NavBar />
+        <div className="relative z-10 flex flex-1 flex-col items-start justify-center px-6 sm:px-10 lg:px-20">
+          <Hero.Content>
+            <Hero.Badge>Economia circular de resíduos</Hero.Badge>
+            <Hero.Title>Resíduo tem valor. Nós mostramos onde.</Hero.Title>
+            <Hero.Subtitle>
+              A Oikos conecta quem gera resíduo a quem transforma esse resíduo
+              em recurso, com rastreabilidade do início ao fim.
+            </Hero.Subtitle>
+            <Hero.Actions>
+              <GlassButton tone="solid" size="md">
+                Começar
+              </GlassButton>
+              <GlassButton tone="glass" size="md" className="text-foreground">
+                Como funciona
+              </GlassButton>
+            </Hero.Actions>
+          </Hero.Content>
         </div>
       </Hero>
 
