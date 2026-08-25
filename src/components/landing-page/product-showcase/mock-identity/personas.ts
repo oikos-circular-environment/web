@@ -11,6 +11,8 @@ type Persona = {
   /** Mesmo rótulo usado em survey/packages/db/src/protocol/data.ts — não traduzir de novo. */
   roleLabel: string;
   roleDescription: string;
+  /** Fala em primeira pessoa, usada no card de destaque da seleção de persona da landing. */
+  quote: string;
   fullName: string;
   displayName: string;
   avatarSrc: string;
@@ -41,6 +43,8 @@ const PERSONAS: Persona[] = [
     role: "CITIZEN",
     roleLabel: "Cidadã",
     roleDescription: "Denuncia descarte irregular e busca pontos de coleta.",
+    quote:
+      "Eu só queria saber pra onde levar meu lixo eletrônico sem rodar a cidade inteira. Agora eu denuncio descarte irregular e acho ponto de coleta perto de casa em dois toques.",
     fullName: "Camila Fernandes Rocha",
     displayName: "Camila Fernandes",
     avatarSrc: "/device-preview/personas/citizen.webp",
@@ -63,6 +67,8 @@ const PERSONAS: Persona[] = [
     role: "COLLECTOR",
     roleLabel: "Coletor",
     roleDescription: "Coleta materiais recicláveis por conta própria.",
+    quote:
+      "Material reciclável é meu sustento. O app me mostra onde tem descarte e quem tá comprando, e me tira da invisibilidade que catador vive todo dia.",
     fullName: "Marcos Vinícius Lima",
     displayName: "Marcos Vinícius",
     avatarSrc: "/device-preview/personas/collector.webp",
@@ -85,6 +91,8 @@ const PERSONAS: Persona[] = [
     role: "RECYCLING_COMPANY",
     roleLabel: "Empresa de reciclagem",
     roleDescription: "Coleta, tria, processa ou revende recicláveis.",
+    quote:
+      "Minha cooperativa vive de comprar certo e vender rápido. Aqui eu encontro fornecedor perto, negocio direto e paro de depender de intermediário.",
     fullName: "Fernanda Ribeiro Alves",
     displayName: "Fernanda Ribeiro",
     avatarSrc: "/device-preview/personas/recycling-company.webp",
@@ -107,6 +115,8 @@ const PERSONAS: Persona[] = [
     role: "GENERAL_COMPANY",
     roleLabel: "Empresa comum",
     roleDescription: "Gera resíduos mas não trabalha com reciclagem.",
+    quote:
+      "Minha loja gera resíduo todo santo dia e eu não tinha pra onde mandar isso direito. Agora eu descarto com quem realmente recicla, com nota e rastreio.",
     fullName: "Rafael Andrade Costa",
     displayName: "Rafael Andrade",
     avatarSrc: "/device-preview/personas/general-company.webp",
@@ -129,6 +139,8 @@ const PERSONAS: Persona[] = [
     role: "GOVERNMENT",
     roleLabel: "Órgão público",
     roleDescription: "Fiscaliza e encaminha denúncias ambientais.",
+    quote:
+      "Recebo denúncia de descarte irregular toda semana. O app organiza isso num mapa só, com prova e endereço, pra eu conseguir fiscalizar de verdade.",
     fullName: "Juliana Martins Pereira",
     displayName: "Juliana Martins",
     avatarSrc: "/device-preview/personas/government.webp",
@@ -148,5 +160,15 @@ const PERSONAS: Persona[] = [
   },
 ];
 
+/**
+ * Mesmo centro mock usado no filtro de Pontos de coleta e no mapa de
+ * Denúncia (`CENTER` em pontos-de-coleta.tsx e report-map.tsx).
+ */
+const GEOLOCATION = {
+  label: "Rondonópolis, MT",
+  latitude: -16.471,
+  longitude: -54.636,
+};
+
 export type { Persona, PersonaRole };
-export { PERSONAS };
+export { GEOLOCATION, PERSONAS };

@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@property --glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,6 +55,7 @@
 @theme {
   --color-landing-ink: #fff3f0;
   --color-landing-muted: rgb(255 255 255 / 0.8);
+  --color-landing-terracotta: #b0532e;
   --animate-rise: rise 1s cubic-bezier(0.44, 0, 0.56, 1) both;
   @keyframes rise {
     from {
@@ -68,6 +75,12 @@
     }
     50% {
       transform: translateY(6px);
+    }
+  }
+  --animate-glow-spin: glow-spin 7s linear infinite;
+  @keyframes glow-spin {
+    to {
+      --glow-angle: 360deg;
     }
   }
 }
