@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type * as React from "react";
 
-import { GlassButton } from "@/components/landing-page/ui/glass-button";
 import { Reveal } from "@/components/landing-page/ui/reveal";
+import { StoreBadges } from "./store-badges";
 
 function Closing() {
   return (
@@ -10,13 +10,14 @@ function Closing() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal className="text-center">
           <h2 className="font-heading text-2xl sm:text-3xl">
-            Pronto pra dar destino certo ao que sobra?
+            Pronto pra dar destino certo ao seu resíduo?
           </h2>
 
-          <div className="mt-8 flex justify-center">
-            <GlassButton tone="solid" size="md" asChild>
-              <a href="#cadastrar">Cadastrar meu ponto de coleta</a>
-            </GlassButton>
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <span className="text-xs font-medium tracking-[0.2em] text-landing-muted uppercase">
+              Disponível em
+            </span>
+            <StoreBadges />
           </div>
         </Reveal>
 
