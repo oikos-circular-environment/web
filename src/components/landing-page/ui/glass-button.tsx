@@ -10,7 +10,7 @@ const glassButtonVariants = cva(
     variants: {
       tone: {
         glass:
-          "backdrop-blur-[5px] bg-white/10 text-landing-ink hover:bg-white/[0.16]",
+          "backdrop-blur-[5px] bg-foreground/10 text-foreground hover:bg-foreground/[0.16]",
         solid: "bg-primary text-primary-foreground hover:bg-primary/90",
       },
       size: {

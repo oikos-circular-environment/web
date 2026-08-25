@@ -14,7 +14,7 @@ function StoreBadge({ href, storeName, iconD, ariaLabel }: StoreBadgeProps) {
       aria-label={ariaLabel}
       className={cn(
         "inline-flex items-center gap-3 rounded-2xl px-4 py-2.5",
-        "backdrop-blur-[5px] bg-white/10 text-landing-ink transition-colors hover:bg-white/[0.16]",
+        "backdrop-blur-[5px] bg-foreground/10 text-foreground transition-colors hover:bg-foreground/[0.16]",
       )}
       data-slot="store-badge"
       href={href}

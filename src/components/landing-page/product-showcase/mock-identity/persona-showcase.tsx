@@ -85,7 +85,7 @@ function PersonaLocationMap({ persona }: { persona: Persona }) {
           longitude={persona.address.longitude}
         >
           <MarkerContent>
-            <div className="flex size-7 items-center justify-center rounded-full border-2 border-white bg-primary shadow-md">
+            <div className="flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary shadow-md">
               <MapPin
                 className="size-3.5 text-primary-foreground"
                 strokeWidth={2.5}

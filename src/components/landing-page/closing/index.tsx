@@ -14,7 +14,7 @@ function Closing() {
           </h2>
 
           <div className="mt-8 flex flex-col items-center gap-3">
-            <span className="text-xs font-medium tracking-[0.2em] text-landing-muted uppercase">
+            <span className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
               Disponível em
             </span>
             <StoreBadges />

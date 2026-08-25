@@ -41,7 +41,7 @@ function DeviceFrame({
       />
 
       <div
-        className="absolute inset-[10px] overflow-hidden rounded-[44px] bg-background"
+        className="device-mock absolute inset-[10px] overflow-hidden rounded-[44px] bg-background"
         style={{ width: FRAME_WIDTH - 20, height: FRAME_HEIGHT - 20 }}
       >
         <DeviceStatusBarProvider>

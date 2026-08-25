@@ -27,7 +27,7 @@ function PersonaPicker() {
                 "flex items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-colors",
                 selected
                   ? "border-primary bg-primary/10"
-                  : "border-border bg-white hover:bg-muted",
+                  : "border-border bg-card hover:bg-muted",
               )}
               key={persona.id}
               onClick={() => setPersonaId(selected ? null : persona.id)}
