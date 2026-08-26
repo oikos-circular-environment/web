@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { submitSupportRequestAction } from "@/app/(public)/suporte/actions";
+import { submitSupportRequestAction } from "@/app/(public)/(institutional)/suporte/actions";
 
 type SubmitSupportRequestInput = {
   title: string;

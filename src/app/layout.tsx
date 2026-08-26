@@ -32,7 +32,7 @@ const siteDescription =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Oikos — Economia circular de resíduos",
+    default: "Oikos: Economia circular de resíduos",
     template: "%s | Oikos",
   },
   description: siteDescription,
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: siteUrl,
     siteName: "Oikos",
-    title: "Oikos — Economia circular de resíduos",
+    title: "Oikos: Economia circular de resíduos",
     description: siteDescription,
     images: [
       { url: "/oikos-logo.png", width: 1024, height: 1024, alt: "Oikos" },
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Oikos — Economia circular de resíduos",
+    title: "Oikos: Economia circular de resíduos",
     description: siteDescription,
     images: ["/oikos-logo.png"],
   },

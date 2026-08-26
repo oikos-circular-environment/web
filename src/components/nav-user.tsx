@@ -1,9 +1,8 @@
 "use client";
 
-import { LogOut, MoonIcon, Settings, SunIcon, UserRound } from "lucide-react";
+import { LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { useEffect, useState, useTransition } from "react";
+import { useTransition } from "react";
 
 import { logoutAction } from "@/app/logout/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,14 +37,6 @@ export function NavUser({
   trigger: React.ReactNode;
 }) {
   const [isLoggingOut, startLogout] = useTransition();
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === "dark";
 
   return (
     <DropdownMenu>
@@ -85,17 +76,6 @@ export function NavUser({
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={!mounted}
-          onSelect={(event) => {
-            event.preventDefault();
-            setTheme(isDark ? "light" : "dark");
-          }}
-        >
-          {isDark ? <SunIcon /> : <MoonIcon />}
-          {isDark ? "Tema claro" : "Tema escuro"}
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

@@ -15,7 +15,8 @@
       "!build",
       "!.agents",
       "!public/**/*.svg",
-      "!src/components/ui"
+      "!src/components/ui",
+      "!src/assets/lord-icons/**/*.json"
     ]
   },
   "formatter": {
