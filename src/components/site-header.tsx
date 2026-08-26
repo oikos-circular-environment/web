@@ -11,17 +11,21 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { cn } from "@/libs/utils";
 
 const navItems = [
   { href: "/", label: "Início" },
-  { href: "/politica-de-privacidade", label: "Política de Privacidade" },
-  { href: "/termos-de-uso", label: "Termos de Uso" },
   { href: "/suporte", label: "Suporte" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ className }: { className?: string }) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        className,
+      )}
+    >
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
         <div className="flex flex-1 justify-start">
           <Link

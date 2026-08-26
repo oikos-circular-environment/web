@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/libs/oikos-sdk/**", "src/components/ui/**"],
+  "ignoreDependencies": [
+    "tailwindcss",
+    "tw-animate-css",
+    "shadcn",
+    "server-only",
+    "client-only"
+  ],
+  "ignoreBinaries": ["cloudflared"]
+}

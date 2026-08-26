@@ -1,24 +1,42 @@
-import Image from "next/image";
+import { Closing } from "@/components/landing-page/closing";
+import { StoreBadges } from "@/components/landing-page/closing/store-badges";
+import { Hero } from "@/components/landing-page/hero";
+import { Manifesto } from "@/components/landing-page/manifesto";
+import { PersonaSelect } from "@/components/landing-page/persona-select";
+import { ProductShowcase } from "@/components/landing-page/product-showcase";
+import { MockIdentityProvider } from "@/components/landing-page/product-showcase/mock-identity/mock-identity-context";
+import { DotField } from "@/components/landing-page/ui/dot-field";
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-32 text-center">
-      <Image
-        src="/oikos-logo.png"
-        alt="Oikos"
-        width={96}
-        height={96}
-        priority
-        className="rounded-2xl"
-      />
-      <div className="flex flex-col items-center gap-2">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">
-          Oikos
-        </h1>
-        <p className="max-w-md text-lg text-muted-foreground">
-          Estamos em construção. Volte em breve.
-        </p>
+    <>
+      <Hero>
+        <Hero.Background />
+        <Hero.NavBar />
+        <div className="relative z-10 flex flex-1 flex-col items-start justify-center px-6 sm:px-10 lg:px-20">
+          <Hero.Content>
+            <Hero.Badge>Economia circular de resíduos</Hero.Badge>
+            <Hero.Title>Resíduo tem valor. Nós mostramos onde.</Hero.Title>
+            <Hero.Subtitle>
+              A Oikos conecta quem gera resíduo a quem transforma esse resíduo
+              em recurso, com rastreabilidade do início ao fim.
+            </Hero.Subtitle>
+            <Hero.Actions>
+              <StoreBadges />
+            </Hero.Actions>
+          </Hero.Content>
+        </div>
+      </Hero>
+
+      <Manifesto />
+      <div className="relative isolate bg-background">
+        <DotField />
+        <MockIdentityProvider>
+          <PersonaSelect />
+          <ProductShowcase />
+        </MockIdentityProvider>
+        <Closing />
       </div>
-    </div>
+    </>
   );
 }

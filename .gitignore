@@ -63,3 +63,6 @@ graphify-out/
 # local per-machine agent config (embeds absolute paths)
 .claude/settings.json
 .claude/settings.local.json
+
+# human-motion skill scratch output (prompts, frames, logs — não é deliverable)
+/output/

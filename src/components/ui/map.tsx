@@ -314,8 +314,14 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     map.on("move", handleMove);
     setMapInstance(map);
 
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+    });
+    resizeObserver.observe(containerRef.current);
+
     return () => {
       clearStyleTimeout();
+      resizeObserver.disconnect();
       map.off("load", loadHandler);
       map.off("styledata", styleDataHandler);
       map.off("move", handleMove);

@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@property --glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -46,6 +52,50 @@
   --radius-2xl: calc(var(--radius) * 2.4);
 }
 
+@theme {
+  --color-landing-ink: #fff3f0;
+  --color-landing-muted: rgb(255 255 255 / 0.8);
+  --color-landing-terracotta: #b0532e;
+  --animate-rise: rise 1s cubic-bezier(0.44, 0, 0.56, 1) both;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  --animate-float: float 2.8s ease-in-out infinite;
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(-6px);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+  --animate-glow-spin: glow-spin 7s linear infinite;
+  @keyframes glow-spin {
+    to {
+      --glow-angle: 360deg;
+    }
+  }
+  --animate-pulse-glow: pulse-glow 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  @keyframes pulse-glow {
+    0% {
+      opacity: 0.7;
+      transform: scale(0.7);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.25);
+    }
+  }
+}
+
 :root {
   --background: #faf9f4;
   --foreground: #211d15;
@@ -81,37 +131,59 @@
   --sidebar-ring: #3b82c4;
 }
 
+/*
+ * O app real ainda não tem dark mode — os mocks de device preview (landing
+ * page e /device-preview) precisam ficar sempre no visual claro real do app,
+ * independente do tema global do site.
+ */
+.device-mock {
+  --background: #faf9f4;
+  --foreground: #211d15;
+  --card: #ffffff;
+  --card-foreground: #211d15;
+  --popover: #ffffff;
+  --popover-foreground: #211d15;
+  --secondary: #f1ede0;
+  --secondary-foreground: #211d15;
+  --muted: #f1ede0;
+  --muted-foreground: #6b6355;
+  --accent: #f1ede0;
+  --accent-foreground: #211d15;
+  --border: #e7e1d2;
+  --input: #d8cfb8;
+}
+
 .dark {
-  --background: #171510;
-  --foreground: #f5f3ec;
-  --card: #211e17;
-  --card-foreground: #f5f3ec;
-  --popover: #211e17;
-  --popover-foreground: #f5f3ec;
+  --background: #1d1811;
+  --foreground: #f4f1eb;
+  --card: #2a2318;
+  --card-foreground: #f4f1eb;
+  --popover: #2a2318;
+  --popover-foreground: #f4f1eb;
   --primary: #3f6212;
   --primary-foreground: #faf9f3;
-  --secondary: #2b2519;
-  --secondary-foreground: #f5f3ec;
-  --muted: #2b2519;
-  --muted-foreground: #a79e8c;
-  --accent: #2b2519;
-  --accent-foreground: #f5f3ec;
+  --secondary: #30281c;
+  --secondary-foreground: #f4f1eb;
+  --muted: #30281c;
+  --muted-foreground: #b2a695;
+  --accent: #30281c;
+  --accent-foreground: #f4f1eb;
   --destructive: #a23e2e;
-  --border: #332e22;
-  --input: #443e2e;
+  --border: #3d3324;
+  --input: #4e412c;
   --ring: #3b82c4;
   --chart-1: #a67c52;
   --chart-2: #2e7d74;
   --chart-3: #5b6b75;
   --chart-4: #7c9473;
   --chart-5: #7a5a3a;
-  --sidebar: #1c1912;
-  --sidebar-foreground: #f5f3ec;
+  --sidebar: #18140f;
+  --sidebar-foreground: #f4f1eb;
   --sidebar-primary: #3f6212;
   --sidebar-primary-foreground: #faf9f3;
-  --sidebar-accent: #2b2519;
-  --sidebar-accent-foreground: #f5f3ec;
-  --sidebar-border: #332e22;
+  --sidebar-accent: #302115;
+  --sidebar-accent-foreground: #f6f0e4;
+  --sidebar-border: #3c2a1a;
   --sidebar-ring: #3b82c4;
 }
 
@@ -124,6 +196,22 @@
   }
   html {
     @apply font-sans;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 0.15) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(0 0 0 / 0.15);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(0 0 0 / 0.25);
   }
   .maplibregl-popup-content {
     @apply bg-transparent! shadow-none! p-0! rounded-none!;

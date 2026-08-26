@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: ["local-web.oikos.company"],
   experimental: {
+    turbopackRustReactCompiler: true,
     serverActions: {
       bodySizeLimit: "50mb",
     },
