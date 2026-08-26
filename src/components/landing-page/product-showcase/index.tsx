@@ -2,12 +2,12 @@
 
 import { animate, cubicBezier } from "animejs";
 import { type RefObject, useEffect, useRef, useState } from "react";
-
 import { useScrollSync } from "@/components/landing-page/hooks/use-scroll-sync";
 import { GlassButton } from "@/components/landing-page/ui/glass-button";
 import { GlassPanel } from "@/components/landing-page/ui/glass-panel";
 import { Reveal } from "@/components/landing-page/ui/reveal";
 import { Section } from "@/components/landing-page/ui/section";
+import { LaserFlow } from "@/components/laser-flow";
 
 import { BEATS, type ShowcaseBeat } from "./beats";
 import { CompanyRegistrationReveal } from "./company-registration-reveal";
@@ -173,7 +173,7 @@ function BeatArticle({
           <h3 className="font-heading text-2xl sm:text-3xl">{beat.title}</h3>
         </Reveal>
 
-        <GlassPanel className="mt-4 flex flex-col gap-4 p-6" tone="light">
+        <div className="mt-4 flex flex-col gap-4">
           {beat.topics.map((topic, topicIndex) => (
             <div
               key={topic.heading}
@@ -207,7 +207,7 @@ function BeatArticle({
               </div>
             );
           })}
-        </GlassPanel>
+        </div>
 
         {beat.cta ? (
           <Reveal className="mt-6" delay={100 * (itemCount + 1)}>
@@ -229,9 +229,17 @@ function BeatArticle({
   );
 }
 
+// Matches --primary in globals.css (lime-800), the site's single brand accent.
+const LASER_COLOR = "#3f6212";
+const LASER_FLOW_SPEED = 0.3;
+// Mirrors the LaserFlow shader's FLOW_SHARPNESS constant so the pulse below
+// matches the exact waveform of the beam's traveling brightness wave.
+const LASER_FLOW_SHARPNESS = 1.5;
+
 function ProductShowcaseContent() {
   const desktopSectionRefs = useRef<(HTMLElement | null)[]>([]);
   const mobileSectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const pulseRef = useRef<HTMLDivElement>(null);
   const trackRefs = useRef<Record<string, RefObject<HTMLElement | null>>>({
     [HOME_BEAT_ID]: { current: null },
     [PROFILE_BEAT_ID]: { current: null },
@@ -244,47 +252,98 @@ function ProductShowcaseContent() {
 
   const trackRefsValue = trackRefs.current;
 
+  const handleLaserFlowTime = (flowTime: number, fade: number) => {
+    const node = pulseRef.current;
+    if (!node) return;
+
+    // Same phase the shader evaluates at the beam's impact point (y=0):
+    // ph = 0 / FLOW_PERIOD + uFlowTime * uFlowSpeed.
+    const phase = flowTime * LASER_FLOW_SPEED;
+    const fraction = phase - Math.floor(phase);
+    const triangle = 1 - Math.abs(fraction * 2 - 1);
+    const intensity = triangle ** LASER_FLOW_SHARPNESS * fade;
+
+    node.style.opacity = String(0.15 + intensity * 0.55);
+    node.style.transform = `scale(${0.7 + intensity * 0.5})`;
+  };
+
   return (
-    <Section className="py-16 sm:py-24">
+    <Section className="pt-32 pb-16 sm:pt-48 sm:pb-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="mb-12 text-center md:text-left">
-          <Section.Header>
-            <Section.Overline>PRODUTO EM AÇÃO</Section.Overline>
-            <Section.Title>Veja como funciona na prática</Section.Title>
-          </Section.Header>
-        </Reveal>
+        <div className="relative">
+          <LaserFlow
+            className="pointer-events-none absolute inset-x-0 -top-20 mx-auto sm:-top-36 md:-top-44 lg:-top-76"
+            color={LASER_COLOR}
+            falloffStart={0.89}
+            flowSpeed={LASER_FLOW_SPEED}
+            flowStrength={0.54}
+            fogFallSpeed={0.95}
+            fogIntensity={0.43}
+            fogScale={0.16}
+            horizontalSizing={1.05}
+            onFlowTime={handleLaserFlowTime}
+            wispDensity={0.9}
+            wispIntensity={11.1}
+            wispSpeed={7.5}
+            horizontalBeamOffset={0.1}
+            verticalBeamOffset={0.0}
+          />
 
-        <div className="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col">
-            {BEATS.map((beat, index) => (
-              <BeatArticle
-                beat={beat}
-                index={index}
-                isMobileActive={index === mobileActiveIndex}
-                key={beat.id}
-                registerRef={(itemIndex, el) => {
-                  desktopSectionRefs.current[itemIndex] = el;
-                  mobileSectionRefs.current[itemIndex] = el;
-                  const ref = trackRefsValue[beat.id];
-                  if (ref) {
-                    ref.current = el;
-                  }
-                }}
-                trackRefs={trackRefsValue}
-              />
-            ))}
-          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-full opacity-0"
+            ref={pulseRef}
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(63,98,18,0.4), transparent 70%)",
+              transformOrigin: "top center",
+            }}
+          />
 
-          <div className="hidden md:block">
-            <div className="sticky top-24 flex min-h-[calc(100vh-12rem)] items-center justify-center">
-              <DeviceFrame>
-                <BeatStage
-                  beat={BEATS[desktopActiveIndex] ?? BEATS[0]}
-                  trackRefs={trackRefsValue}
-                />
-              </DeviceFrame>
+          <GlassPanel
+            className="relative z-10 px-6 py-10 shadow-[0_24px_80px_rgba(0,0,0,0.12)] sm:px-10 sm:py-14"
+            tone="light"
+          >
+            <Reveal className="mb-12 text-center">
+              <Section.Header>
+                <Section.Overline>PRODUTO EM AÇÃO</Section.Overline>
+                <Section.Title>Veja como funciona na prática</Section.Title>
+              </Section.Header>
+            </Reveal>
+
+            <div className="relative grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-16">
+              <div className="flex flex-col">
+                {BEATS.map((beat, index) => (
+                  <BeatArticle
+                    beat={beat}
+                    index={index}
+                    isMobileActive={index === mobileActiveIndex}
+                    key={beat.id}
+                    registerRef={(itemIndex, el) => {
+                      desktopSectionRefs.current[itemIndex] = el;
+                      mobileSectionRefs.current[itemIndex] = el;
+                      const ref = trackRefsValue[beat.id];
+                      if (ref) {
+                        ref.current = el;
+                      }
+                    }}
+                    trackRefs={trackRefsValue}
+                  />
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <div className="sticky top-24 flex min-h-[calc(100vh-12rem)] items-center justify-center">
+                  <DeviceFrame>
+                    <BeatStage
+                      beat={BEATS[desktopActiveIndex] ?? BEATS[0]}
+                      trackRefs={trackRefsValue}
+                    />
+                  </DeviceFrame>
+                </div>
+              </div>
             </div>
-          </div>
+          </GlassPanel>
         </div>
       </div>
     </Section>

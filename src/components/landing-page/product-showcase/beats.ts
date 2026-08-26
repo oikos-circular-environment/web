@@ -34,8 +34,8 @@ const BEATS: ShowcaseBeat[] = [
         body: "Dá pra ver pontos de coleta e entender o app inteiro sem login. A conta entra quando você decidir usar.",
       },
       {
-        heading: "Ela aprende quem é você.",
-        body: "No segundo acesso, a Home já mostra seu endereço, seus atalhos e o que importa pra sua rotina.",
+        heading: "Feito pra quem faz acontecer.",
+        body: "Interface moderna, direta e sem burocracia. O app se adapta à sua rotina, não o contrário.",
       },
     ],
     Component: HomeScreen,

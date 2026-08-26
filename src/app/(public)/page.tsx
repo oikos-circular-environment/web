@@ -1,11 +1,11 @@
 import { Closing } from "@/components/landing-page/closing";
+import { StoreBadges } from "@/components/landing-page/closing/store-badges";
 import { Hero } from "@/components/landing-page/hero";
 import { Manifesto } from "@/components/landing-page/manifesto";
 import { PersonaSelect } from "@/components/landing-page/persona-select";
 import { ProductShowcase } from "@/components/landing-page/product-showcase";
 import { MockIdentityProvider } from "@/components/landing-page/product-showcase/mock-identity/mock-identity-context";
 import { DotField } from "@/components/landing-page/ui/dot-field";
-import { GlassButton } from "@/components/landing-page/ui/glass-button";
 
 export default function Home() {
   return (
@@ -22,12 +22,7 @@ export default function Home() {
               em recurso, com rastreabilidade do início ao fim.
             </Hero.Subtitle>
             <Hero.Actions>
-              <GlassButton tone="solid" size="md">
-                Começar
-              </GlassButton>
-              <GlassButton tone="glass" size="md" className="text-foreground">
-                Como funciona
-              </GlassButton>
+              <StoreBadges />
             </Hero.Actions>
           </Hero.Content>
         </div>

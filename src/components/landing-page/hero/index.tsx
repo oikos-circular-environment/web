@@ -53,7 +53,7 @@ function HeroBadge({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="hero-badge"
       tone="floating"
       className={cn(
-        "hero-rise rounded-full bg-background/30 px-4 py-1.5 text-sm tracking-[-0.02em] text-muted-foreground",
+        "hero-rise rounded-full bg-background/30 px-4 py-1.5 text-sm tracking-[-0.02em] text-muted-foreground shadow-none",
         className,
       )}
       {...props}

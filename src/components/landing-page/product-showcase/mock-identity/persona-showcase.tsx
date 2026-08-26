@@ -11,7 +11,7 @@ import { useMockIdentity } from "./mock-identity-context";
 import { PERSONAS, type Persona } from "./personas";
 
 const GLOW_GRADIENT =
-  "bg-[conic-gradient(from_var(--glow-angle),transparent_0deg,transparent_270deg,var(--color-landing-terracotta)_315deg,var(--primary)_345deg,transparent_360deg)]";
+  "bg-[radial-gradient(circle,var(--primary)_0%,var(--color-landing-terracotta)_35%,transparent_70%)]";
 
 function PersonaListItem({
   persona,
@@ -112,7 +112,7 @@ function PersonaDetailCard({
       <div
         aria-hidden
         className={cn(
-          "animate-glow-spin absolute -inset-3 rounded-[1.75rem] opacity-45 blur-xl",
+          "animate-pulse-glow absolute -inset-3 rounded-[1.75rem] opacity-45 blur-xl",
           GLOW_GRADIENT,
         )}
       />
@@ -120,7 +120,7 @@ function PersonaDetailCard({
         <div
           aria-hidden
           className={cn(
-            "animate-glow-spin absolute inset-0 rounded-2xl",
+            "animate-pulse-glow absolute inset-0 rounded-2xl",
             GLOW_GRADIENT,
           )}
         />
