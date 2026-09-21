@@ -1,42 +1,20 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { createServerApiClient } from "@/libs/api/oikos-api";
 import {
   getV1Profiles,
   getV1ProfilesAddresses,
   putV1Profiles,
-} from "@/libs/oikos-sdk/sdk.gen";
+} from "@oikos-circular-environment/oikos-sdk/sdk.gen";
 import type {
   GetV1ProfilesAddressesResponse,
   GetV1ProfilesResponse,
   PutV1ProfilesData,
-} from "@/libs/oikos-sdk/types.gen";
-
-const SESSION_COOKIE = "oikos_session_token";
-
-async function getSessionToken(): Promise<string | null> {
-  const store = await cookies();
-  return store.get(SESSION_COOKIE)?.value ?? null;
-}
-
-async function buildServerClient() {
-  const store = await cookies();
-  const headers = new Headers();
-  const cookie = store.toString();
-  if (cookie) {
-    headers.set("cookie", cookie);
-  }
-  return createServerApiClient(headers);
-}
+} from "@oikos-circular-environment/oikos-sdk/types.gen";
+import { getRequestApiClient } from "@/libs/api/oikos-api";
 
 export async function getProfileAction(): Promise<GetV1ProfilesResponse | null> {
-  const token = await getSessionToken();
-  if (!token) return null;
-
   const { data, error } = await getV1Profiles({
-    client: await buildServerClient(),
-    headers: { Authorization: `Bearer ${token}` },
+    client: await getRequestApiClient(),
   });
 
   if (error || !data) return null;
@@ -44,12 +22,8 @@ export async function getProfileAction(): Promise<GetV1ProfilesResponse | null> 
 }
 
 export async function getProfileAddressAction(): Promise<GetV1ProfilesAddressesResponse | null> {
-  const token = await getSessionToken();
-  if (!token) return null;
-
   const { data, error } = await getV1ProfilesAddresses({
-    client: await buildServerClient(),
-    headers: { Authorization: `Bearer ${token}` },
+    client: await getRequestApiClient(),
   });
 
   if (error || !data) return null;
@@ -59,14 +33,8 @@ export async function getProfileAddressAction(): Promise<GetV1ProfilesAddressesR
 export async function updateProfileAction(
   input: PutV1ProfilesData["body"],
 ): Promise<GetV1ProfilesResponse["profile"]> {
-  const token = await getSessionToken();
-  if (!token) {
-    throw new Error("Sessão expirada. Faça login novamente.");
-  }
-
   const { data, error } = await putV1Profiles({
-    client: await buildServerClient(),
-    headers: { Authorization: `Bearer ${token}` },
+    client: await getRequestApiClient(),
     body: input,
   });
 

@@ -1,10 +1,9 @@
+import type { PutV1ProfilesData } from "@oikos-circular-environment/oikos-sdk/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
 import {
   getProfileAction,
   updateProfileAction,
 } from "@/app/(dashboard)/dashboard/profile/actions";
-import type { PutV1ProfilesData } from "@/libs/oikos-sdk/types.gen";
 
 const profileQueryKey = ["profile"];
 
