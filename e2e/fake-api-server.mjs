@@ -3,26 +3,25 @@ import { createServer } from "node:http";
 const port = Number(process.env.PORT ?? 3335);
 
 const VALID_PASSWORD = "password123";
-const SESSION_COOKIE = "oikos_session_token";
+const CLIENT_KEY = "e2e-test-client-key";
+const SESSION_COOKIE = "better-auth.session_token";
+const EXISTING_EMAIL = "existing@example.com";
 
-function createUser(role, email, hasOrganization = false) {
+function createUser(email) {
+  const role = email.includes("moderator") ? "moderator" : "user";
+  const now = new Date().toISOString();
   return {
-    id: crypto.randomUUID(),
+    id: `user-${email}`,
     email,
     name: role === "moderator" ? "Moderador Teste" : "Usuário Teste",
-    email_verified: true,
+    emailVerified: true,
     image: null,
     role,
-    organizations: hasOrganization
-      ? [
-          {
-            id: crypto.randomUUID(),
-            company_id: crypto.randomUUID(),
-            name: "Organização Teste",
-            role: "owner",
-          },
-        ]
-      : [],
+    banned: false,
+    banReason: null,
+    banExpires: null,
+    createdAt: now,
+    updatedAt: now,
   };
 }
 
@@ -32,10 +31,21 @@ function tokenFor(email) {
 
 function userFromToken(token) {
   if (!token?.startsWith("token-")) return null;
-  const email = token.slice("token-".length);
-  const role = email.includes("moderator") ? "moderator" : "user";
-  const hasOrganization = email.includes("org");
-  return createUser(role, email, hasOrganization);
+  return createUser(token.slice("token-".length));
+}
+
+function sessionToken(req) {
+  const cookies = (req.headers.cookie ?? "").split(";");
+  for (const entry of cookies) {
+    const [name, ...rest] = entry.trim().split("=");
+    if (name === SESSION_COOKIE) return decodeURIComponent(rest.join("="));
+  }
+  return null;
+}
+
+function sessionUser(req) {
+  const token = sessionToken(req);
+  return token ? userFromToken(token) : null;
 }
 
 async function readJson(req) {
@@ -44,132 +54,227 @@ async function readJson(req) {
   return JSON.parse(Buffer.concat(chunks).toString("utf-8") || "{}");
 }
 
-// The real api authenticates v2 routes via "Authorization: Bearer <token>",
-// never via cookie (see api/src/modules/auth/routes/v2/auth-v2-routes.ts).
-// Session/moderation handlers below must check this header to match reality.
-function bearerToken(req) {
-  const header = req.headers.authorization ?? "";
-  return header.startsWith("Bearer ") ? header.slice("Bearer ".length) : null;
-}
-
-function sendJson(res, status, data) {
-  res.writeHead(status, { "content-type": "application/json" });
+function sendJson(res, status, data, headers = {}) {
+  res.writeHead(status, { "content-type": "application/json", ...headers });
   res.end(JSON.stringify(data));
 }
 
+function sendError(res, status, code, message) {
+  sendJson(res, status, { code, message });
+}
+
+function sessionCookie(token) {
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax`;
+}
+
+function requireModerator(req, res) {
+  const user = sessionUser(req);
+  if (user?.role !== "moderator") {
+    sendError(res, 403, "FORBIDDEN", "Forbidden");
+    return null;
+  }
+  return user;
+}
+
+const bannedEmail = "banned@example.com";
+const listedUsers = () => [
+  { ...createUser("regular@example.com"), name: "Usuário Regular" },
+  {
+    ...createUser(bannedEmail),
+    name: "Usuário Banido",
+    banned: true,
+    banReason: "Spam",
+  },
+];
+
 const server = createServer(async (req, res) => {
   const url = req.url ?? "";
+  const path = url.split("?")[0];
   console.log(`[fake-api] ${req.method} ${url} cookie=${req.headers.cookie}`);
 
-  if (req.method === "POST" && url === "/v2/auth/sign-in") {
+  if (path.startsWith("/auth/") && req.headers["x-client-key"] !== CLIENT_KEY) {
+    sendError(res, 401, "INVALID_CLIENT_KEY", "Invalid client key");
+    return;
+  }
+
+  if (req.method === "POST" && path === "/auth/sign-in/email") {
     const { email, password } = await readJson(req);
 
     if (password !== VALID_PASSWORD) {
-      sendJson(res, 401, {
-        message: "Email ou senha inválidos.",
-        code: "INVALID_CREDENTIALS",
-        statusCode: 401,
-      });
+      sendError(
+        res,
+        401,
+        "INVALID_EMAIL_OR_PASSWORD",
+        "Invalid email or password",
+      );
       return;
     }
 
-    const role = email.includes("moderator") ? "moderator" : "user";
-    const hasOrganization = email.includes("org");
-    const user = createUser(role, email, hasOrganization);
     const token = tokenFor(email);
-
-    res.writeHead(200, {
-      "content-type": "application/json",
-      "set-cookie": `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax`,
-    });
-    res.end(JSON.stringify({ token, user }));
+    sendJson(
+      res,
+      200,
+      { redirect: false, token, user: createUser(email) },
+      { "set-cookie": sessionCookie(token) },
+    );
     return;
   }
 
-  if (req.method === "GET" && url === "/v2/auth/session") {
-    const token = bearerToken(req);
-    const user = token ? userFromToken(token) : null;
+  if (req.method === "POST" && path === "/auth/sign-up/email") {
+    const { email, name } = await readJson(req);
 
-    if (!user) {
-      sendJson(res, 401, {
-        message: "Unauthorized",
-        code: "UNAUTHORIZED",
-        statusCode: 401,
-      });
-      return;
-    }
-
-    sendJson(res, 200, { user });
-    return;
-  }
-
-  if (req.method === "GET" && url.startsWith("/v2/moderation/users")) {
-    const token = bearerToken(req);
-    const user = token ? userFromToken(token) : null;
-
-    if (user?.role !== "moderator") {
-      sendJson(res, 403, {
-        message: "Forbidden",
-        code: "FORBIDDEN",
-        statusCode: 403,
-      });
+    if (email === EXISTING_EMAIL) {
+      sendError(
+        res,
+        422,
+        "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
+        "User already exists. Use another email.",
+      );
       return;
     }
 
     sendJson(res, 200, {
-      users: [
-        {
-          id: crypto.randomUUID(),
-          email: "regular@example.com",
-          name: "Usuário Regular",
-          email_verified: true,
-          image: null,
-          role: "user",
-          banned: false,
-          ban_reason: null,
-          ban_expires: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: crypto.randomUUID(),
-          email: "banned@example.com",
-          name: "Usuário Banido",
-          email_verified: true,
-          image: null,
-          role: "user",
-          banned: true,
-          ban_reason: "Spam",
-          ban_expires: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ],
-      total: 2,
-      limit: 10,
-      offset: 0,
+      token: null,
+      user: { ...createUser(email), name, emailVerified: false },
     });
     return;
   }
 
-  if (req.method === "POST" && url === "/v2/auth/sign-out") {
-    sendJson(res, 200, { message: "Signed out" });
+  if (req.method === "GET" && path === "/auth/get-session") {
+    const user = sessionUser(req);
+    sendJson(
+      res,
+      200,
+      user
+        ? {
+            user,
+            session: {
+              id: `session-${user.id}`,
+              userId: user.id,
+              expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+            },
+          }
+        : null,
+    );
     return;
   }
 
-  if (req.method === "POST" && url === "/v2/auth/verify-email") {
-    const { token } = await readJson(req);
+  if (req.method === "POST" && path === "/auth/sign-out") {
+    sendJson(
+      res,
+      200,
+      { success: true },
+      {
+        "set-cookie": `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax`,
+      },
+    );
+    return;
+  }
+
+  if (req.method === "GET" && path === "/auth/verify-email") {
+    const token = new URL(url, "http://fake-api").searchParams.get("token");
 
     if (token !== "aaaaaaaa.bbbbbbbb.cccccccc") {
+      sendError(res, 400, "INVALID_TOKEN", "Invalid or expired reset token");
+      return;
+    }
+
+    sendJson(res, 200, { status: true });
+    return;
+  }
+
+  if (req.method === "GET" && path === "/auth/organization/list") {
+    if (!sessionUser(req)) {
+      sendError(res, 401, "UNAUTHORIZED", "Unauthorized");
+      return;
+    }
+    const user = sessionUser(req);
+    sendJson(
+      res,
+      200,
+      user.email.includes("org")
+        ? [
+            {
+              id: "org-1",
+              name: "Organização Teste",
+              slug: "organizacao-teste",
+              role: "owner",
+            },
+          ]
+        : [],
+    );
+    return;
+  }
+
+  if (path.startsWith("/auth/admin/")) {
+    if (!requireModerator(req, res)) return;
+
+    if (req.method === "GET" && path === "/auth/admin/list-users") {
+      const users = listedUsers();
+      sendJson(res, 200, { users, total: users.length, limit: 10, offset: 0 });
+      return;
+    }
+
+    if (req.method === "GET" && path === "/auth/admin/get-user") {
+      const id = new URL(url, "http://fake-api").searchParams.get("id");
+      const user = listedUsers().find((entry) => entry.id === id);
+      if (!user) {
+        sendError(res, 404, "USER_NOT_FOUND", "User not found");
+        return;
+      }
+      sendJson(res, 200, user);
+      return;
+    }
+
+    if (req.method === "POST" && path === "/auth/admin/list-user-sessions") {
+      sendJson(res, 200, { sessions: [] });
+      return;
+    }
+
+    if (req.method === "POST") {
+      const body = await readJson(req);
+      const target =
+        listedUsers().find((entry) => entry.id === body.userId) ??
+        createUser("regular@example.com");
+
+      if (path === "/auth/admin/ban-user") {
+        sendJson(res, 200, { user: { ...target, banned: true } });
+        return;
+      }
+      if (path === "/auth/admin/unban-user") {
+        sendJson(res, 200, { user: { ...target, banned: false } });
+        return;
+      }
+      if (path === "/auth/admin/set-role") {
+        sendJson(res, 200, { user: { ...target, role: body.role } });
+        return;
+      }
+      if (path === "/auth/admin/revoke-user-sessions") {
+        sendJson(res, 200, { success: true });
+        return;
+      }
+      if (path === "/auth/admin/remove-user") {
+        sendJson(res, 200, { success: true });
+        return;
+      }
+    }
+  }
+
+  if (req.method === "PATCH" && path === "/v1/users/me/change-password") {
+    if (!sessionUser(req)) {
+      sendError(res, 401, "UNAUTHORIZED", "Unauthorized");
+      return;
+    }
+    const { current_password: currentPassword } = await readJson(req);
+    if (currentPassword !== VALID_PASSWORD) {
       sendJson(res, 400, {
-        message: "Invalid or expired reset token",
-        code: "INVALID_RESET_TOKEN",
+        message: "Senha atual incorreta.",
+        code: "INVALID_PASSWORD",
         statusCode: 400,
       });
       return;
     }
-
-    sendJson(res, 200, { message: "Email verified successfully" });
+    sendJson(res, 200, { message: "Password changed" });
     return;
   }
 

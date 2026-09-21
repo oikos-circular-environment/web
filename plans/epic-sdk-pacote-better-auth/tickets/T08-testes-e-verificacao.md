@@ -1,6 +1,6 @@
 # T08 Testes e verificação final
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído
 **Depende de:** T07
 **Módulos:** `e2e/`, `e2e/fake-api-server.mjs`, `playwright.config.ts`
 **Spec:** Tech Plan (Falhas; Alterados: e2e)
