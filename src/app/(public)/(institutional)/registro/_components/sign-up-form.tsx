@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheckIcon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useId } from "react";
+import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,8 +24,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-
-import { type SignUpFormState, signUpAction } from "../actions";
+import { authClient } from "@/libs/auth-client";
 
 const signUpFormSchema = z.object({
   name: z
@@ -43,27 +42,42 @@ const signUpFormSchema = z.object({
 
 type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 
-const initialState: SignUpFormState = { status: "idle" };
-
 export function SignUpForm() {
   const nameId = useId();
   const emailId = useId();
   const passwordId = useId();
-  const [formState, formAction, isPending] = useActionState(
-    signUpAction,
-    initialState,
-  );
+  const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   const {
     register,
-    formState: { errors },
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
     mode: "onTouched",
     defaultValues: { name: "", email: "", password: "" },
   });
 
-  if (formState.status === "success") {
+  const onSubmit = handleSubmit(async (values) => {
+    setError(null);
+    const { error: signUpError } = await authClient.signUp.email(values);
+    if (signUpError) {
+      const conflict =
+        signUpError.code === "USER_ALREADY_EXISTS" ||
+        signUpError.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL";
+      setError(
+        conflict
+          ? "Já existe uma conta com este e-mail."
+          : (signUpError.message ??
+              "Não foi possível criar sua conta. Tente novamente."),
+      );
+      return;
+    }
+    setRegisteredEmail(values.email);
+  });
+
+  if (registeredEmail) {
     return (
       <Empty>
         <EmptyHeader>
@@ -73,7 +87,7 @@ export function SignUpForm() {
           <EmptyTitle>Verifique seu e-mail</EmptyTitle>
           <EmptyDescription>
             Enviamos um link de confirmação para{" "}
-            <strong>{formState.email}</strong>. Confirme seu e-mail para ativar
+            <strong>{registeredEmail}</strong>. Confirme seu e-mail para ativar
             sua conta.
           </EmptyDescription>
         </EmptyHeader>
@@ -87,7 +101,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form action={formAction} noValidate>
+    <form onSubmit={onSubmit} noValidate>
       <FieldGroup>
         <Field data-invalid={!!errors.name}>
           <FieldLabel htmlFor={nameId}>Nome</FieldLabel>
@@ -128,15 +142,15 @@ export function SignUpForm() {
           <FieldError errors={[errors.password]} />
         </Field>
 
-        {formState.status === "error" && (
+        {error && (
           <p role="alert" className="text-sm text-destructive">
-            {formState.error}
+            {error}
           </p>
         )}
 
-        <Button type="submit" size="lg" disabled={isPending}>
-          {isPending ? "Criando conta" : "Criar conta"}
-          {isPending && <Spinner data-icon="inline-end" />}
+        <Button type="submit" size="lg" disabled={isSubmitting}>
+          {isSubmitting ? "Criando conta" : "Criar conta"}
+          {isSubmitting && <Spinner data-icon="inline-end" />}
         </Button>
       </FieldGroup>
     </form>
