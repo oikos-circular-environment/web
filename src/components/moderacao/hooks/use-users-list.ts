@@ -4,38 +4,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import {
-  banUserAction,
-  getUsersAction,
-  removeUserAction,
-  revokeUserSessionsAction,
-  unbanUserAction,
-  updateUserRoleAction,
-} from "@/app/(dashboard)/dashboard/moderacao/actions";
+  banUser,
+  listUsers,
+  removeUser,
+  revokeUserSessions,
+  setRole,
+  unbanUser,
+} from "./moderation-admin";
 
-const USERS_LIMIT = 10;
 const usersQueryKey = ["moderation-users"];
 
-export function useUsersList(
-  initialData?: Awaited<ReturnType<typeof getUsersAction>>,
-) {
+export function useUsersList() {
   const queryClient = useQueryClient();
   const [offset, setOffset] = useState(0);
   const [searchValue, setSearchValue] = useState("");
 
   const query = useQuery({
-    queryKey: [usersQueryKey, offset, searchValue],
-    queryFn: async () => {
-      return getUsersAction({
-        limit: USERS_LIMIT,
-        offset,
-        searchField: searchValue ? "email" : undefined,
-        searchOperator: "contains",
-        searchValue: searchValue || undefined,
-        sortBy: "created_at",
-        sortDirection: "desc",
-      });
-    },
-    initialData,
+    queryKey: [...usersQueryKey, offset, searchValue],
+    queryFn: () => listUsers({ offset, searchValue }),
   });
 
   const invalidate = () => {
@@ -44,7 +30,7 @@ export function useUsersList(
 
   const updateRole = useMutation({
     mutationFn: ({ id, role }: { id: string; role: string }) =>
-      updateUserRoleAction(id, role),
+      setRole({ userId: id, role }),
     onSuccess: invalidate,
   });
 
@@ -57,26 +43,22 @@ export function useUsersList(
       id: string;
       banReason?: string;
       banExpiresIn?: number;
-    }) =>
-      banUserAction(id, {
-        ban_reason: banReason,
-        ban_expires_in: banExpiresIn,
-      }),
+    }) => banUser({ userId: id, banReason, banExpiresIn }),
     onSuccess: invalidate,
   });
 
   const unban = useMutation({
-    mutationFn: (id: string) => unbanUserAction(id),
+    mutationFn: (id: string) => unbanUser(id),
     onSuccess: invalidate,
   });
 
   const revokeSessions = useMutation({
-    mutationFn: (id: string) => revokeUserSessionsAction(id),
+    mutationFn: (id: string) => revokeUserSessions(id),
     onSuccess: invalidate,
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => removeUserAction(id),
+    mutationFn: (id: string) => removeUser(id),
     onSuccess: invalidate,
   });
 

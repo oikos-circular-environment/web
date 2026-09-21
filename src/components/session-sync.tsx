@@ -1,19 +1,44 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
-import { type SessionUser, useSessionStore } from "@/stores/use-session-store";
+import { authClient } from "@/libs/auth-client";
+import {
+  type SessionOrganization,
+  type SessionUser,
+  useSessionStore,
+} from "@/stores/use-session-store";
 
-export function SessionSync({ user }: { user: SessionUser | null }) {
-  const setSession = useSessionStore((state) => state.setSession);
-  const setSessionResolved = useSessionStore(
-    (state) => state.setSessionResolved,
-  );
+export function SessionSync({
+  user,
+  organizations,
+}: {
+  user: SessionUser | null;
+  organizations: SessionOrganization[];
+}) {
+  const router = useRouter();
+  const { data, isPending } = authClient.useSession();
+  const hadSession = useRef(false);
 
   useEffect(() => {
-    setSession(user);
+    const { setSession, setSessionResolved } = useSessionStore.getState();
+    setSession(user, organizations);
     setSessionResolved(true);
-  }, [user, setSession, setSessionResolved]);
+    hadSession.current = user !== null;
+  }, [user, organizations]);
+
+  useEffect(() => {
+    if (isPending) return;
+    if (data) {
+      hadSession.current = true;
+      return;
+    }
+    if (!hadSession.current) return;
+    hadSession.current = false;
+    useSessionStore.getState().clearSession();
+    router.replace("/login");
+  }, [data, isPending, router]);
 
   return null;
 }

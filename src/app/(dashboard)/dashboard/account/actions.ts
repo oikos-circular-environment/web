@@ -1,20 +1,12 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { z } from "zod";
-import { apiClient } from "@/libs/api/oikos-api";
 import {
-  deleteV2AccountsMe,
-  patchV2AccountsMeCancelDeletion,
-  postV2AuthChangePassword,
-} from "@/libs/oikos-sdk/sdk.gen";
-
-const SESSION_COOKIE = "oikos_session_token";
-
-async function getSessionToken(): Promise<string | null> {
-  const store = await cookies();
-  return store.get(SESSION_COOKIE)?.value ?? null;
-}
+  deleteV1UsersMe,
+  patchV1UsersMeCancelDeletion,
+  patchV1UsersMeChangePassword,
+} from "@oikos-circular-environment/oikos-sdk/sdk.gen";
+import { z } from "zod";
+import { getRequestApiClient } from "@/libs/api/oikos-api";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Informe sua senha atual."),
@@ -44,15 +36,12 @@ export async function changePasswordAction(
     };
   }
 
-  const token = await getSessionToken();
-  if (!token) {
-    return { status: "error", error: "Sessão expirada. Faça login novamente." };
-  }
-
-  const { error } = await postV2AuthChangePassword({
-    client: apiClient,
-    headers: { Authorization: `Bearer ${token}` },
-    body: parsed.data,
+  const { error } = await patchV1UsersMeChangePassword({
+    client: await getRequestApiClient(),
+    body: {
+      current_password: parsed.data.currentPassword,
+      new_password: parsed.data.newPassword,
+    },
   });
 
   if (error) {
@@ -70,17 +59,8 @@ export type DeleteAccountResult =
   | { success: false; message: string };
 
 export async function requestAccountDeletionAction(): Promise<DeleteAccountResult> {
-  const token = await getSessionToken();
-  if (!token) {
-    return {
-      success: false,
-      message: "Sessão expirada. Faça login novamente.",
-    };
-  }
-
-  const { data, error } = await deleteV2AccountsMe({
-    client: apiClient,
-    headers: { Authorization: `Bearer ${token}` },
+  const { data, error } = await deleteV1UsersMe({
+    client: await getRequestApiClient(),
   });
 
   if (error || !data) {
@@ -91,21 +71,12 @@ export async function requestAccountDeletionAction(): Promise<DeleteAccountResul
     return { success: false, message };
   }
 
-  return { success: true, deletedAt: data.deleted_at.toISOString() };
+  return { success: true, deletedAt: new Date(data.deleted_at).toISOString() };
 }
 
 export async function cancelAccountDeletionAction(): Promise<DeleteAccountResult> {
-  const token = await getSessionToken();
-  if (!token) {
-    return {
-      success: false,
-      message: "Sessão expirada. Faça login novamente.",
-    };
-  }
-
-  const { error } = await patchV2AccountsMeCancelDeletion({
-    client: apiClient,
-    headers: { Authorization: `Bearer ${token}` },
+  const { error } = await patchV1UsersMeCancelDeletion({
+    client: await getRequestApiClient(),
   });
 
   if (error) {

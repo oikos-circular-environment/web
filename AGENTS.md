@@ -54,6 +54,10 @@ Rules:
 - **Loading state**: conteúdo carregando usa `Skeleton` do shadcn; botão/input/select pendente
   usa `Spinner` nativo do shadcn (já existe, usado em `verify-email/loading.tsx`). Nunca spinner
   customizado ou texto "Carregando...".
-- **SDK gerado (`src/libs/oikos-sdk/`) nunca é editado à mão.** Toda chamada à API passa por ele
+- **SDK é o pacote `@oikos-circular-environment/oikos-sdk` (GitHub Packages, versão pinada no `package.json`); não há geração local.** Toda chamada à API passa por ele
   + o wrapper axios (`src/libs/api/oikos-api.ts`), exceto autenticação (Better Auth tem cliente
   próprio, ver `src/libs/auth-client.ts`).
+
+## Orquestração de execução (epic com tickets)
+
+Claude é o orquestrador. Cada ticket em `plans/<epic>/tickets/` vai para o agente `executor` (cadeia de modelos gratuitos primeiro, pago só com autorização), nunca para o agente genérico. Todo diff passa por `code-review` antes de aceito. `qa-runner` roda `tsc`, `biome check`, `knip`, `build` e `test:e2e`. O orquestrador só escreve o diff direto se `Agent` ou o dispatch para o OpenCode estiverem indisponíveis. Um commit por ticket, na branch da issue, nunca em `development` ou `production`.

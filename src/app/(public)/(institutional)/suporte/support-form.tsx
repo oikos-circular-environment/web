@@ -52,6 +52,11 @@ const supportFormSchema = z.object({
       MAX_DESCRIPTION_LENGTH,
       `Máximo de ${MAX_DESCRIPTION_LENGTH} caracteres.`,
     ),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Informe seu e-mail.")
+    .pipe(z.email("Informe um e-mail válido.")),
 });
 
 type SupportFormValues = z.infer<typeof supportFormSchema>;
@@ -74,10 +79,15 @@ function formatFileSize(bytes: number) {
 
 type SupportFormProps = {
   turnstileSiteKey: string;
+  defaultEmail: string;
 };
 
-export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
+export function SupportForm({
+  turnstileSiteKey,
+  defaultEmail,
+}: SupportFormProps) {
   const titleId = useId();
+  const emailId = useId();
   const descriptionId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const turnstileRef = useRef<TurnstileInstance>(null);
@@ -91,7 +101,7 @@ export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<SupportFormValues>({
     resolver: zodResolver(supportFormSchema),
-    defaultValues: { title: "", description: "" },
+    defaultValues: { title: "", description: "", email: defaultEmail },
   });
 
   const [images, setImages] = useState<ImageAttachment[]>([]);
@@ -174,6 +184,7 @@ export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
       await submitSupportRequest.mutateAsync({
         title: values.title,
         description: values.description,
+        email: values.email,
         images: images.map((image) => image.file),
         turnstileToken,
       });
@@ -211,6 +222,19 @@ export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
                 {...register("title")}
               />
               <FieldError errors={[errors.title]} />
+            </Field>
+
+            <Field data-invalid={!!errors.email}>
+              <FieldLabel htmlFor={emailId}>E-mail</FieldLabel>
+              <Input
+                id={emailId}
+                type="email"
+                autoComplete="email"
+                aria-invalid={!!errors.email}
+                placeholder="voce@exemplo.com"
+                {...register("email")}
+              />
+              <FieldError errors={[errors.email]} />
             </Field>
 
             <Field data-invalid={!!errors.description}>
@@ -302,26 +326,28 @@ export function SupportForm({ turnstileSiteKey }: SupportFormProps) {
             </Field>
 
             <Field>
-              <Turnstile
-                ref={turnstileRef}
-                siteKey={turnstileSiteKey}
-                options={{
-                  language: "pt-br",
-                  theme: resolvedTheme === "dark" ? "dark" : "light",
-                  refreshExpired: "manual",
-                }}
-                onSuccess={() => setIsChallengeSolved(true)}
-                onExpire={() => {
-                  setIsChallengeSolved(false);
-                  turnstileRef.current?.reset();
-                }}
-                onError={() => {
-                  setIsChallengeSolved(false);
-                  toast.error(
-                    "Falha na verificação de segurança. Recarregue a página e tente novamente.",
-                  );
-                }}
-              />
+              <div className="flex justify-center">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={turnstileSiteKey}
+                  options={{
+                    language: "pt-br",
+                    theme: resolvedTheme === "dark" ? "dark" : "light",
+                    refreshExpired: "manual",
+                  }}
+                  onSuccess={() => setIsChallengeSolved(true)}
+                  onExpire={() => {
+                    setIsChallengeSolved(false);
+                    turnstileRef.current?.reset();
+                  }}
+                  onError={() => {
+                    setIsChallengeSolved(false);
+                    toast.error(
+                      "Falha na verificação de segurança. Recarregue a página e tente novamente.",
+                    );
+                  }}
+                />
+              </div>
             </Field>
 
             <div className="flex items-center justify-between">

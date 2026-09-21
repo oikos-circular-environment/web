@@ -108,6 +108,7 @@ test("exibe erros de validação ao enviar título e descrição vazios", async 
 
   await expect(page.getByText("Informe um título.")).toBeVisible();
   await expect(page.getByText("Descreva o problema.")).toBeVisible();
+  await expect(page.getByText("Informe seu e-mail.")).toBeVisible();
 });
 
 test("Enviar solicitação fica desabilitado enquanto o Turnstile não resolve", async ({
@@ -147,6 +148,7 @@ test("envia a solicitação com anexo, mostra o load state e reseta ao concluir"
   await page.goto("/suporte");
   await page.getByLabel("Título").fill("Algo quebrou");
   await page.getByLabel("Descrição").fill("Descrição do problema");
+  await page.getByLabel("E-mail").fill("pessoa@example.com");
   await page.locator('input[type="file"]').setInputFiles(validImage);
   await expect(page.getByText("valid-image.png")).toBeVisible();
   await waitForTurnstile(page);
@@ -171,15 +173,12 @@ test("mostra erro e não reseta o formulário quando a api falha", async ({
   await page.goto("/suporte");
   await page.getByLabel("Título").fill("Algo quebrou");
   await page.getByLabel("Descrição").fill("Descrição do problema");
+  await page.getByLabel("E-mail").fill("falha@example.com");
   await waitForTurnstile(page);
 
   await page.getByRole("button", { name: "Enviar solicitação" }).click();
 
-  await expect(
-    page.getByText(
-      "Support request attachment type is invalid. Allowed types: jpeg, png",
-    ),
-  ).toBeVisible();
+  await expect(page.getByText("Falha simulada da API.")).toBeVisible();
 
   await expect(page.getByLabel("Título")).toHaveValue("Algo quebrou");
   await expect(page.getByLabel("Descrição")).toHaveValue(
