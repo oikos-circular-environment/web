@@ -11,6 +11,7 @@ import {
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
+import { USERS_LIMIT } from "@/components/moderacao/hooks/moderation-admin";
 import { useUsersList } from "@/components/moderacao/hooks/use-users-list";
 import {
   AlertDialog,
@@ -59,8 +60,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UserDetailsDrawer } from "./user-details-drawer";
 
-const USERS_LIMIT = 10;
-
 const BAN_DURATION_OPTIONS = [
   { value: "permanent", label: "Permanente", seconds: undefined },
   { value: "1d", label: "1 dia", seconds: 60 * 60 * 24 },
@@ -68,11 +67,7 @@ const BAN_DURATION_OPTIONS = [
   { value: "30d", label: "30 dias", seconds: 60 * 60 * 24 * 30 },
 ] as const;
 
-type UsersListProps = {
-  initialData?: Awaited<ReturnType<typeof import("../actions").getUsersAction>>;
-};
-
-export function UsersList({ initialData }: UsersListProps) {
+export function UsersList() {
   const searchId = useId();
   const banReasonId = useId();
   const banDurationId = useId();
@@ -94,7 +89,7 @@ export function UsersList({ initialData }: UsersListProps) {
     isUpdatingRole,
     isRevokingSessions,
     isRemoving,
-  } = useUsersList(initialData);
+  } = useUsersList();
 
   const [dialog, setDialog] = useState<
     | { type: "ban"; userId: string; email: string }

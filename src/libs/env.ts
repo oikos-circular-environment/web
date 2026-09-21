@@ -10,9 +10,7 @@ export function getApiUrl(): string {
 }
 
 export function getClientApiKey(): string {
-  return (
-    process.env.CLIENT_API_KEY ?? process.env.NEXT_PUBLIC_CLIENT_API_KEY ?? ""
-  );
+  return process.env.CLIENT_API_KEY ?? "";
 }
 
 export function getTurnstileSiteKey(): string {

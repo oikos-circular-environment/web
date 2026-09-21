@@ -1,9 +1,12 @@
-import { getApiUrl, getClientApiKey } from "@/libs/env";
-import type { Client } from "@/libs/oikos-sdk/client";
-import { createClient } from "@/libs/oikos-sdk/client";
+import "server-only";
 
-function buildClient(config?: Parameters<typeof createClient>[0]): Client {
-  const api = createClient({ baseURL: getApiUrl(), ...config });
+import type { Client } from "@oikos-circular-environment/oikos-sdk/client";
+import { createClient } from "@oikos-circular-environment/oikos-sdk/client";
+import { headers as nextHeaders } from "next/headers";
+import { getApiUrl, getClientApiKey } from "@/libs/env";
+
+function buildClient(): Client {
+  const api = createClient({ baseURL: getApiUrl() });
 
   api.instance.interceptors.request.use((requestConfig) => {
     requestConfig.headers.set("X-Client-Key", getClientApiKey());
@@ -29,4 +32,8 @@ export function createServerApiClient(headers?: Headers): Client {
   return api;
 }
 
-export const apiClient = buildClient({ withCredentials: true });
+export async function getRequestApiClient(): Promise<Client> {
+  return createServerApiClient(await nextHeaders());
+}
+
+export const apiClient = buildClient();

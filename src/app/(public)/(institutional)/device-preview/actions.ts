@@ -1,14 +1,16 @@
 "use server";
 
-import { apiClient } from "@/libs/api/oikos-api";
 import {
   getV1ComplaintsMap,
   getV1Market,
   getV1WasteCategories,
-} from "@/libs/oikos-sdk";
+} from "@oikos-circular-environment/oikos-sdk";
+import { createServerApiClient } from "@/libs/api/oikos-api";
 
 export async function getWasteCategoriesAction() {
-  const { data, error } = await getV1WasteCategories({ client: apiClient });
+  const { data, error } = await getV1WasteCategories({
+    client: createServerApiClient(),
+  });
 
   if (error || !data) return [];
   return data.categories;
@@ -23,7 +25,7 @@ export async function getComplaintsMapAction(params: {
   hazardLevel: "ALL" | "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 }) {
   const { data, error } = await getV1ComplaintsMap({
-    client: apiClient,
+    client: createServerApiClient(),
     query: {
       lat: params.lat,
       lon: params.lon,
@@ -47,7 +49,7 @@ export async function getMarketAction(params: {
   cursor: string | null;
 }) {
   const { data, error } = await getV1Market({
-    client: apiClient,
+    client: createServerApiClient(),
     query: {
       lat: params.lat,
       lon: params.lon,
