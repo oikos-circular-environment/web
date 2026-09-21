@@ -1,6 +1,6 @@
 # T05 /v1 e conta com cookie encaminhado
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído
 **Depende de:** T03
 **Módulos:** `src/libs/api/oikos-api.ts`, `dashboard/account`, `dashboard/profile`, `dashboard/market`, `device-preview`, `suporte`
 **Spec:** Tech Plan (decisão 6; Alterados: account, profile)

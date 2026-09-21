@@ -1,6 +1,6 @@
 # T06 Moderação de usuários com admin.*
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído
 **Depende de:** T03
 **Módulos:** `dashboard/moderacao`
 **Spec:** Tech Plan (decisão 4; Alterados: moderacao)

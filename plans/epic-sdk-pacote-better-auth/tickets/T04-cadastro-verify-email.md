@@ -1,6 +1,6 @@
 # T04 Cadastro e verificação de e-mail
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído
 **Depende de:** T03
 **Módulos:** `src/app/(public)/(institutional)/registro`, `src/app/(public)/(institutional)/verify-email`
 **Spec:** Tech Plan (Alterados: login, registro, verify-email)
