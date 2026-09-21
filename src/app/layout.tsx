@@ -6,7 +6,7 @@ import { SessionSync } from "@/components/session-sync";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { getSession } from "@/libs/session";
+import { getOrganizations, getSessionUser } from "@/libs/auth-server";
 import { cn } from "@/libs/utils";
 
 const oswaldHeading = Oswald({
@@ -79,7 +79,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getSession();
+  const user = await getSessionUser();
+  const organizations = user ? await getOrganizations() : [];
 
   return (
     <html
@@ -96,7 +97,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <QueryProvider>
-          <SessionSync user={user} />
+          <SessionSync user={user} organizations={organizations} />
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

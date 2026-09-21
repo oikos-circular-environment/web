@@ -2,7 +2,6 @@ import { create } from "zustand";
 
 export type SessionOrganization = {
   id: string;
-  company_id: string | null;
   name: string;
   role: string;
 };
@@ -13,17 +12,19 @@ export type SessionUser = {
   email: string;
   email_verified: boolean;
   image: string | null;
-  role: string;
-  organizations: SessionOrganization[];
+  role: "user" | "moderator";
 };
 
 type SessionState = {
   user: SessionUser | null;
-  role: string | null;
+  role: SessionUser["role"] | null;
   organizations: SessionOrganization[];
   activeOrganizationId: string | null;
   sessionResolved: boolean;
-  setSession: (user: SessionUser | null) => void;
+  setSession: (
+    user: SessionUser | null,
+    organizations?: SessionOrganization[],
+  ) => void;
   setActiveOrganizationId: (organizationId: string) => void;
   setSessionResolved: (resolved: boolean) => void;
   clearSession: () => void;
@@ -35,12 +36,12 @@ export const useSessionStore = create<SessionState>()((set) => ({
   organizations: [],
   activeOrganizationId: null,
   sessionResolved: false,
-  setSession: (user) =>
+  setSession: (user, organizations = []) =>
     set({
       user,
       role: user?.role ?? null,
-      organizations: user?.organizations ?? [],
-      activeOrganizationId: user?.organizations[0]?.id ?? null,
+      organizations,
+      activeOrganizationId: organizations[0]?.id ?? null,
     }),
   setActiveOrganizationId: (organizationId) =>
     set({ activeOrganizationId: organizationId }),

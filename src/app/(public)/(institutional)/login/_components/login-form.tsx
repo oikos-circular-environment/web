@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useActionState, useId } from "react";
+import { useRouter } from "next/navigation";
+import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,8 +15,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-
-import { type LoginFormState, loginAction } from "../actions";
+import { authClient } from "@/libs/auth-client";
 
 const loginFormSchema = z.object({
   email: z
@@ -28,27 +28,35 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-const initialState: LoginFormState = {};
-
 export function LoginForm() {
   const emailId = useId();
   const passwordId = useId();
-  const [formState, formAction, isPending] = useActionState(
-    loginAction,
-    initialState,
-  );
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
-    formState: { errors },
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     mode: "onTouched",
     defaultValues: { email: "", password: "" },
   });
 
+  const onSubmit = handleSubmit(async (values) => {
+    setError(null);
+    const { error: signInError } = await authClient.signIn.email(values);
+    if (signInError) {
+      setError("Email ou senha inválidos.");
+      return;
+    }
+    router.push("/dashboard");
+    router.refresh();
+  });
+
   return (
-    <form action={formAction} noValidate>
+    <form onSubmit={onSubmit} noValidate>
       <FieldGroup>
         <Field data-invalid={!!errors.email}>
           <FieldLabel htmlFor={emailId}>E-mail</FieldLabel>
@@ -76,15 +84,15 @@ export function LoginForm() {
           <FieldError errors={[errors.password]} />
         </Field>
 
-        {formState.error && (
+        {error && (
           <p role="alert" className="text-sm text-destructive">
-            {formState.error}
+            {error}
           </p>
         )}
 
-        <Button type="submit" size="lg" disabled={isPending}>
-          {isPending ? "Entrando" : "Entrar"}
-          {isPending && <Spinner data-icon="inline-end" />}
+        <Button type="submit" size="lg" disabled={isSubmitting}>
+          {isSubmitting ? "Entrando" : "Entrar"}
+          {isSubmitting && <Spinner data-icon="inline-end" />}
         </Button>
       </FieldGroup>
     </form>

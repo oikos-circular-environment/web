@@ -13,14 +13,14 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { SIDEBAR_COOKIE_NAME } from "@/components/ui/sidebar-cookie";
-import { getSession } from "@/libs/session";
+import { getSessionUser } from "@/libs/auth-server";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getSession();
+  const user = await getSessionUser();
 
   if (!user) {
     redirect("/login");

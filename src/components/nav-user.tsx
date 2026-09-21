@@ -2,9 +2,9 @@
 
 import { LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import { logoutAction } from "@/app/logout/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { authClient } from "@/libs/auth-client";
 import type { SessionUser } from "@/stores/use-session-store";
 
 export function getUserInitials(user: SessionUser): string {
@@ -36,7 +37,15 @@ export function NavUser({
   user: SessionUser;
   trigger: React.ReactNode;
 }) {
+  const router = useRouter();
   const [isLoggingOut, startLogout] = useTransition();
+
+  const handleLogout = () =>
+    startLogout(async () => {
+      await authClient.signOut();
+      router.push("/");
+      router.refresh();
+    });
 
   return (
     <DropdownMenu>
@@ -80,7 +89,7 @@ export function NavUser({
         <DropdownMenuItem
           variant="destructive"
           disabled={isLoggingOut}
-          onSelect={() => startLogout(() => logoutAction())}
+          onSelect={handleLogout}
         >
           <LogOut />
           Log out

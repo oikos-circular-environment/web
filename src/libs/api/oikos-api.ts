@@ -1,6 +1,6 @@
+import type { Client } from "@oikos-circular-environment/oikos-sdk/client";
+import { createClient } from "@oikos-circular-environment/oikos-sdk/client";
 import { getApiUrl, getClientApiKey } from "@/libs/env";
-import type { Client } from "@/libs/oikos-sdk/client";
-import { createClient } from "@/libs/oikos-sdk/client";
 
 function buildClient(config?: Parameters<typeof createClient>[0]): Client {
   const api = createClient({ baseURL: getApiUrl(), ...config });

@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/libs/session";
+import { getSessionUser } from "@/libs/auth-server";
 import { AccountPanel } from "./_components/account-panel";
 
 export default async function AccountPage() {
-  const user = await getSession();
+  const user = await getSessionUser();
 
   if (!user) {
     redirect("/login");
