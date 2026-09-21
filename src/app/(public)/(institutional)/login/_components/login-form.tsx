@@ -16,6 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/libs/auth-client";
+import {
+  isServiceUnavailable,
+  notifyServiceUnavailable,
+} from "@/libs/auth-error";
 
 const loginFormSchema = z.object({
   email: z
@@ -46,7 +50,13 @@ export function LoginForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
-    const { error: signInError } = await authClient.signIn.email(values);
+    const { error: signInError } = await authClient.signIn
+      .email(values)
+      .catch(() => ({ error: { status: 0 } }));
+    if (isServiceUnavailable(signInError)) {
+      notifyServiceUnavailable();
+      return;
+    }
     if (signInError) {
       setError("Email ou senha inválidos.");
       return;

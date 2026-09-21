@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/libs/auth-client";
+import { isServiceUnavailable } from "@/libs/auth-error";
 
 const verificationTokenSchema = z
   .string()
@@ -26,6 +27,9 @@ const verificationTokenSchema = z
     /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/,
     "Token com formato inválido.",
   );
+
+const UNAVAILABLE_MESSAGE =
+  "Não conseguimos confirmar seu e-mail agora. Tente novamente em instantes ou fale com o suporte.";
 
 type VerifyState =
   | { status: "pending" }
@@ -65,24 +69,25 @@ export function VerifyEmailStatus({ token }: VerifyEmailStatusProps) {
       .verifyEmail({ query: { token: parsedToken.data } })
       .then(({ error }) => {
         setState(
-          error
-            ? {
-                status: "error",
-                message:
-                  error.message ??
-                  "Não foi possível confirmar seu e-mail. O link pode ser inválido ou ter expirado.",
-              }
-            : {
-                status: "success",
-                message: "Seu e-mail foi confirmado com sucesso.",
-              },
+          isServiceUnavailable(error)
+            ? { status: "error", message: UNAVAILABLE_MESSAGE }
+            : error
+              ? {
+                  status: "error",
+                  message:
+                    error.message ??
+                    "Não foi possível confirmar seu e-mail. O link pode ser inválido ou ter expirado.",
+                }
+              : {
+                  status: "success",
+                  message: "Seu e-mail foi confirmado com sucesso.",
+                },
         );
       })
       .catch(() => {
         setState({
           status: "error",
-          message:
-            "Não foi possível confirmar seu e-mail. O link pode ser inválido ou ter expirado.",
+          message: UNAVAILABLE_MESSAGE,
         });
       });
   }, [token]);

@@ -25,6 +25,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/libs/auth-client";
+import {
+  isServiceUnavailable,
+  notifyServiceUnavailable,
+} from "@/libs/auth-error";
 
 const signUpFormSchema = z.object({
   name: z
@@ -61,7 +65,15 @@ export function SignUpForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setError(null);
-    const { error: signUpError } = await authClient.signUp.email(values);
+    const { error: signUpError } = await authClient.signUp
+      .email(values)
+      .catch(() => ({
+        error: { status: 0, code: undefined, message: undefined },
+      }));
+    if (isServiceUnavailable(signUpError)) {
+      notifyServiceUnavailable();
+      return;
+    }
     if (signUpError) {
       const conflict =
         signUpError.code === "USER_ALREADY_EXISTS" ||
