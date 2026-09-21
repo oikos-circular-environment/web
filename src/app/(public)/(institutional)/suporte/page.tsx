@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 
+import { getSessionUser } from "@/libs/auth-server";
 import { getTurnstileSiteKey } from "@/libs/env";
 import { SupportForm } from "./support-form";
 
@@ -18,6 +19,7 @@ export default async function SupportPage() {
   await connection();
 
   const turnstileSiteKey = getTurnstileSiteKey();
+  const user = await getSessionUser();
 
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-16">
@@ -37,7 +39,10 @@ export default async function SupportPage() {
           .
         </p>
       </div>
-      <SupportForm turnstileSiteKey={turnstileSiteKey} />
+      <SupportForm
+        turnstileSiteKey={turnstileSiteKey}
+        defaultEmail={user?.email ?? ""}
+      />
     </div>
   );
 }

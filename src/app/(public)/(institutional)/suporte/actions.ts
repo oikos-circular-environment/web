@@ -3,7 +3,7 @@
 import type { AxiosError } from "axios";
 import { z } from "zod";
 
-import { createServerApiClient } from "@/libs/api/oikos-api";
+import { getRequestApiClient } from "@/libs/api/oikos-api";
 import { getTurnstileSecretKey } from "@/libs/env";
 
 const SITEVERIFY_URL =
@@ -12,23 +12,15 @@ const SITEVERIFY_URL =
 const supportRequestSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().min(1).max(2500),
+  email: z.string().trim().pipe(z.email()),
   turnstileToken: z.string().min(1),
 });
-
-export type SupportRequestAttachment = {
-  id: string;
-  url: string;
-  file_name: string;
-  path: string;
-  created_at: string;
-};
 
 export type SupportRequest = {
   id: string;
   title: string;
   description: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  attachments: SupportRequestAttachment[];
+  status: string;
   created_at: string;
 };
 
@@ -49,11 +41,13 @@ async function verifyTurnstileToken(token: string) {
 export async function submitSupportRequestAction(
   formData: FormData,
 ): Promise<SupportRequest> {
-  const { title, description, turnstileToken } = supportRequestSchema.parse({
-    title: formData.get("title"),
-    description: formData.get("description"),
-    turnstileToken: formData.get("turnstileToken"),
-  });
+  const { title, description, email, turnstileToken } =
+    supportRequestSchema.parse({
+      title: formData.get("title"),
+      description: formData.get("description"),
+      email: formData.get("email"),
+      turnstileToken: formData.get("turnstileToken"),
+    });
 
   if (!(await verifyTurnstileToken(turnstileToken))) {
     throw new Error(
@@ -61,21 +55,25 @@ export async function submitSupportRequestAction(
     );
   }
 
-  const payload = new FormData();
-  payload.append("title", title);
-  payload.append("description", description);
-  for (const image of formData.getAll("images")) {
-    if (image instanceof File) {
-      payload.append("images", image);
-    }
-  }
+  const api = (await getRequestApiClient()).instance;
 
   try {
-    const response = await createServerApiClient().instance.post(
-      "/v1/moderation/support",
-      payload,
-    );
-    return response.data.supportRequest as SupportRequest;
+    const response = await api.post("/v1/support", {
+      title,
+      description,
+      type: "SUPPORT",
+      reporter_email: email,
+    });
+    const support = response.data.support as SupportRequest;
+
+    for (const image of formData.getAll("images")) {
+      if (!(image instanceof File)) continue;
+      const payload = new FormData();
+      payload.append("file", image);
+      await api.post(`/v1/support/${support.id}/attachments`, payload);
+    }
+
+    return support;
   } catch (error) {
     const axiosError = error as AxiosError<{ message?: string }>;
     throw new Error(

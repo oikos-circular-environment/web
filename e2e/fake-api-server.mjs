@@ -278,47 +278,44 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  if (req.method !== "POST" || !url?.startsWith("/v1/moderation/support")) {
-    res.writeHead(404).end();
-    return;
-  }
-
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const body = Buffer.concat(chunks);
-
-  const request = new Request("http://fake-api/v1/moderation/support", {
-    method: "POST",
-    headers: { "content-type": req.headers["content-type"] ?? "" },
-    body,
-  });
-
-  const formData = await request.formData();
-  const hasImage = formData
-    .getAll("images")
-    .some((value) => value instanceof File && value.size > 0);
-
-  if (!hasImage) {
-    sendJson(res, 400, {
-      message:
-        "Support request attachment type is invalid. Allowed types: jpeg, png",
-      code: "SUPPORT_REQUEST_ATTACHMENT_TYPE_INVALID",
-      statusCode: 400,
+  if (req.method === "POST" && url === "/v1/support") {
+    const body = await readJson(req);
+    if (!body.reporter_email) {
+      sendJson(res, 400, {
+        message: "reporter_email is required",
+        code: "SUPPORT_EMAIL_REQUIRED",
+        statusCode: 400,
+      });
+      return;
+    }
+    if (String(body.reporter_email).startsWith("falha@")) {
+      sendJson(res, 400, {
+        message: "Falha simulada da API.",
+        code: "SUPPORT_SIMULATED_FAILURE",
+        statusCode: 400,
+      });
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    sendJson(res, 200, {
+      support: {
+        id: "11111111-1111-1111-1111-111111111111",
+        title: body.title,
+        description: body.description,
+        status: "PENDING",
+        created_at: new Date().toISOString(),
+      },
     });
     return;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  sendJson(res, 200, {
-    supportRequest: {
-      id: "11111111-1111-1111-1111-111111111111",
-      title: "Algo quebrou",
-      description: "Descrição do problema",
-      status: "PENDING",
-      attachments: [],
-      created_at: new Date().toISOString(),
-    },
-  });
+  if (req.method === "POST" && url?.startsWith("/v1/support/")) {
+    for await (const _chunk of req);
+    sendJson(res, 200, { support: {} });
+    return;
+  }
+
+  res.writeHead(404).end();
 });
 
 server.listen(port, () => {
