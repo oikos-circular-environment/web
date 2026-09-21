@@ -1,6 +1,6 @@
 # T07 Trocar SDK local pelo pacote
 
-**Status:** [ ] Pendente
+**Status:** [x] Concluído
 **Depende de:** T04, T05, T06
 **Módulos:** `package.json`, `.npmrc`, imports, `src/libs/oikos-sdk`, `openapi-ts.config.ts`, `.github/workflows/ci.yml`, `knip.jsonc`, `biome.json`, `.env.example`, `AGENTS.md`
 **Spec:** Brief; Tech Plan (decisão 1; Restrições)
