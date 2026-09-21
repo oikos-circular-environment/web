@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRoundIcon, MonitorSmartphoneIcon } from "lucide-react";
+import { MonitorSmartphoneIcon } from "lucide-react";
 
 import { useUserDetails } from "@/components/moderacao/hooks/use-user-details";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,22 +15,11 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const PROVIDER_LABELS: Record<string, string> = {
-  credential: "E-mail e senha",
-};
-
 function formatDateTime(value: string | Date): string {
   return new Date(value).toLocaleString("pt-BR");
 }
 
-function providerLabel(providerId: string): string {
-  return (
-    PROVIDER_LABELS[providerId] ??
-    providerId.charAt(0).toUpperCase() + providerId.slice(1)
-  );
-}
-
-function userInitials(user: { name: string | null; email: string }): string {
+function userInitials(user: { name?: string | null; email: string }): string {
   if (user.name) {
     return user.name
       .split(" ")
@@ -75,8 +64,7 @@ export function UserDetailsDrawer({
   userId,
   onOpenChange,
 }: UserDetailsDrawerProps) {
-  const { user, profile, accounts, sessions, isLoading } =
-    useUserDetails(userId);
+  const { user, sessions, isLoading } = useUserDetails(userId);
 
   return (
     <Sheet open={userId !== null} onOpenChange={onOpenChange}>
@@ -118,7 +106,7 @@ export function UserDetailsDrawer({
                 ) : (
                   <Badge variant="outline">Ativo</Badge>
                 )}
-                {user.email_verified && (
+                {user.emailVerified && (
                   <Badge variant="outline">E-mail verificado</Badge>
                 )}
               </div>
@@ -126,14 +114,13 @@ export function UserDetailsDrawer({
 
             <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-4">
               <Section title="Conta">
-                <Field label="Origem" value={user.auth_source} />
                 <Field
                   label="Criado em"
-                  value={formatDateTime(user.created_at)}
+                  value={formatDateTime(user.createdAt)}
                 />
                 <Field
                   label="Atualizado em"
-                  value={formatDateTime(user.updated_at)}
+                  value={formatDateTime(user.updatedAt)}
                 />
               </Section>
 
@@ -143,73 +130,19 @@ export function UserDetailsDrawer({
                   <Section title="Banimento">
                     <Field
                       label="Motivo"
-                      value={user.ban_reason ?? "Não informado"}
+                      value={user.banReason ?? "Não informado"}
                     />
                     <Field
                       label="Expira em"
                       value={
-                        user.ban_expires
-                          ? formatDateTime(user.ban_expires)
+                        user.banExpires
+                          ? formatDateTime(user.banExpires)
                           : "Permanente"
                       }
                     />
                   </Section>
                 </>
               )}
-
-              <Separator />
-
-              <Section title="Profile">
-                {profile ? (
-                  <>
-                    <Field label="Nome completo" value={profile.full_name} />
-                    <Field
-                      label="Nome de exibição"
-                      value={profile.display_name}
-                    />
-                    <Field label="Telefone" value={profile.phone} />
-                    {profile.address && (
-                      <Field
-                        label="Endereço"
-                        value={`${profile.address.city}/${profile.address.state_code}`}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Usuário ainda não cadastrou um profile.
-                  </p>
-                )}
-              </Section>
-
-              <Separator />
-
-              <Section title="Métodos de login">
-                {accounts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum método vinculado.
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {accounts.map((account) => (
-                      <div
-                        key={account.id}
-                        className="flex items-center gap-2 rounded-md border p-2 text-sm"
-                      >
-                        <KeyRoundIcon className="size-4 text-muted-foreground" />
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <span className="truncate font-medium">
-                            {providerLabel(account.provider_id)}
-                          </span>
-                          <span className="truncate text-xs text-muted-foreground">
-                            Vinculado em {formatDateTime(account.created_at)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
 
               <Separator />
 
@@ -228,13 +161,13 @@ export function UserDetailsDrawer({
                         <MonitorSmartphoneIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="truncate font-medium">
-                            {session.ip_address ?? "IP não registrado"}
+                            {session.ipAddress ?? "IP não registrado"}
                           </span>
                           <span className="truncate text-xs text-muted-foreground">
-                            {session.user_agent ?? "User-agent não registrado"}
+                            {session.userAgent ?? "User-agent não registrado"}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            Expira em {formatDateTime(session.expires_at)}
+                            Expira em {formatDateTime(session.expiresAt)}
                           </span>
                         </div>
                       </div>
